@@ -1,6 +1,6 @@
 The given skeleton includes the following files:
 - Commands.h/Commands.cpp: The supported commands of smash, each command is represented by a class that inherits from either BuiltInCommand or ExternalCommand. Each command that you add should implement execute, which is a virtual method, that executes the command.
-- signals.h/signals.cpp: Declares and implements requires signal handlers: SIGINT handler to handle Ctr+C and SIGTSTP to handle Ctrl+Z. If you are going to implement the bonus part then you have to implement additional handler for SIG_ALRM.
+- signals.h/signals.cpp: Declares and implements requires signal handler: SIGINT handler to handle Ctr+C If you are going to implement the bonus part then you have to implement additional handler for SIG_ALRM.
 - smash.cpp: Contains the smash main, which runs an infinite loop that receives the next typed command and sends it to SmallShell::executeCommand to handle it. Please note that if you are going to implement the bonus part, then you have to define a handler for SIG_ALRM in the main (in this file).
 - Makefile: builds and tests using a basic test your smash. You can use "make zip" to prepare a zip file for submission; this is recommended, which makes sure you follow our submission's structure. 
 - test_input1.txt / test_expected_output1.txt: basic test files that being used by the given Makefile to run a basic test on your smash implementation. 
@@ -30,8 +30,8 @@ We recommend that you start your implementation with:
 - implement the rest of the built-in commands 
 - implement the external commands
 - implement the execution of external commands in the background
-- implement the jobs list and all relevant commands (fg/bg/jobs/...) 
-- implement the I/O redirection and the pipes
-- Finally implement the bonus command.
+- implement the jobs list and all relevant commands (fg/jobs/...) 
+- implement the I/O redirection
+- Finally implement the bonus command and pipes.
 
 Good luck :)

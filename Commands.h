@@ -35,49 +35,49 @@ public:
 
 class BuiltInCommand : public Command {
 public:
-    BuiltInCommand(const string& cmd_line, const string& cmd_no_sign);
+    BuiltInCommand(const string& cmd_line, const string& cmd_no_sign): Command(cmd_line, cmd_no_sign) {}
 
     virtual ~BuiltInCommand() {}
 };
 
 class ExternalCommand : public Command {
 public:
-    ExternalCommand(const string& cmd_line, const string& cmd_no_sign);
+    ExternalCommand(const string& cmd_line, const string& cmd_no_sign): Command(cmd_line, cmd_no_sign) {}
 
     virtual ~ExternalCommand() {}
 
     void execute(SmallShell *smash) override;
 };
 
-class PipeCommand : public Command {
-    // TODO: Add your data members
-public:
-    PipeCommand(const string& cmd_line, const string& cmd_no_sign);
-
-    virtual ~PipeCommand() {}
-
-    void execute(SmallShell *smash) override;
-};
-
-class WatchCommand : public Command {
-    // TODO: Add your data members
-public:
-    WatchCommand(const string& cmd_line, const string& cmd_no_sign);
-
-    virtual ~WatchCommand() {}
-
-    void execute(SmallShell *smash) override;
-};
-
-class RedirectionCommand : public Command {
-    // TODO: Add your data members
-public:
-    explicit RedirectionCommand(const string& cmd_line, const string& cmd_no_sign);
-
-    virtual ~RedirectionCommand() {}
-
-    void execute(SmallShell *smash) override;
-};
+//class PipeCommand : public Command {
+//    // TODO: Add your data members
+//public:
+//    PipeCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
+//
+//    virtual ~PipeCommand() {}
+//
+//    void execute(SmallShell *smash) override;
+//};
+//
+//class WatchCommand : public Command {
+//    // TODO: Add your data members
+//public:
+//    WatchCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
+//
+//    virtual ~WatchCommand() {}
+//
+//    void execute(SmallShell *smash) override;
+//};
+//
+//class RedirectionCommand : public Command {
+//    // TODO: Add your data members
+//public:
+//    explicit RedirectionCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
+//
+//    virtual ~RedirectionCommand() {}
+//
+//    void execute(SmallShell *smash) override;
+//};
 
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
@@ -212,15 +212,15 @@ public:
     void execute(SmallShell *smash) override;
 };
 
-class KillCommand : public BuiltInCommand {
-    // TODO: Add your data members
-public:
-    KillCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs);
-
-    virtual ~KillCommand() {}
-
-    void execute(SmallShell *smash) override;
-};
+//class KillCommand : public BuiltInCommand {
+//    // TODO: Add your data members
+//public:
+//    KillCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs);
+//
+//    virtual ~KillCommand() {}
+//
+//    void execute(SmallShell *smash) override;
+//};
 
 class ForegroundCommand : public BuiltInCommand {
     // TODO: Add your data members
@@ -232,14 +232,14 @@ public:
     void execute(SmallShell *smash) override;
 };
 
-class ListDirCommand : public BuiltInCommand {
-public:
-    ListDirCommand(string cmd_line);
-
-    virtual ~ListDirCommand() {}
-
-    void execute(SmallShell *smash) override;
-};
+//class ListDirCommand : public BuiltInCommand {
+//public:
+//    ListDirCommand(string cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
+//
+//    virtual ~ListDirCommand() {}
+//
+//    void execute(SmallShell *smash) override;
+//};
 
 class GetUserCommand : public BuiltInCommand {
 public:
@@ -250,23 +250,23 @@ public:
     void execute(SmallShell *smash) override;
 };
 
-class aliasCommand : public BuiltInCommand {
-public:
-    aliasCommand(const string& cmd_line, const string& cmd_no_sign);
-
-    virtual ~aliasCommand() {}
-
-    void execute(SmallShell *smash) override;
-};
-
-class unaliasCommand : public BuiltInCommand {
-public:
-    unaliasCommand(const string& cmd_line, const string& cmd_no_sign);
-
-    virtual ~unaliasCommand() {}
-
-    void execute(SmallShell *smash) override;
-};
+//class aliasCommand : public BuiltInCommand {
+//public:
+//    aliasCommand(const string& cmd_line, const string& cmd_no_sign);
+//
+//    virtual ~aliasCommand() {}
+//
+//    void execute(SmallShell *smash) override;
+//};
+//
+//class unaliasCommand : public BuiltInCommand {
+//public:
+//    unaliasCommand(const string& cmd_line, const string& cmd_no_sign);
+//
+//    virtual ~unaliasCommand() {}
+//
+//    void execute(SmallShell *smash) override;
+//};
 
 
 class SmallShell {

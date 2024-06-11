@@ -157,19 +157,21 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<JobsCommand>(cmd_s, cmd_no_sign, &jobs);
     } else if (firstWord.compare("fg") == 0) {
         return std::make_shared<ForegroundCommand>(cmd_s, cmd_no_sign, &jobs);
-    } else if (firstWord.compare("kill") == 0) {
-        return std::make_shared<KillCommand>(cmd_s, cmd_no_sign, &jobs);
-    } else if (firstWord.compare("alias") == 0) {
-        return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
-    } else if (firstWord.compare("unalias") == 0) {
-        return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
+//    } else if (firstWord.compare("kill") == 0) {
+//        return std::make_shared<KillCommand>(cmd_s, cmd_no_sign, &jobs);
+//    } else if (firstWord.compare("alias") == 0) {
+//        return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
+//    } else if (firstWord.compare("unalias") == 0) {
+//        return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
     } else {
     return std::make_shared<ExternalCommand>(cmd_s, cmd_no_sign);
     }
 }
 
+
 void SmallShell::executeCommand(const char *cmd_line) {
     // TODO: Add your implementation here
+     bool backGround = _isBackgroundCommand(cmd_line);
      std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
      bool isExternal = dynamic_cast<ExternalCommand *>(cmd.get()) != nullptr;
      if (isExternal){
@@ -181,6 +183,7 @@ void SmallShell::executeCommand(const char *cmd_line) {
              if(setpgrp() == -1){
                  perror("smash error: setpgrp failed");
              }
+             jobs.removeFinishedJobs();
              cmd->execute(this);
          }
          else{ //parent
@@ -201,6 +204,7 @@ void SmallShell::executeCommand(const char *cmd_line) {
          }
      }
      else{
+         jobs.removeFinishedJobs();
         cmd->execute(this);
     }
      //Please note that you must fork smash process for some commands (e.g., external commands....)

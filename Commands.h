@@ -162,8 +162,8 @@ public:
         friend std::ostream& operator<<(std::ostream& os, const JobEntry& job);
     };
 
-    int maxId;
     vector<shared_ptr<JobEntry>> jobs;
+    int maxId;
 
 public:
     JobsList();
@@ -190,7 +190,7 @@ public:
 
     void removeJobById(int jobId);
 
-    shared_ptr<JobsList::JobEntry> getLastJob(int *lastJobId);
+    shared_ptr<JobsList::JobEntry> getLastJob();
 
     shared_ptr<JobsList::JobEntry> getLastStoppedJob(int *jobId);
     // TODO: Add extra methods or modify exisitng ones as needed

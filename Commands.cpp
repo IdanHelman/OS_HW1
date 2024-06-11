@@ -3,7 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
-//#include <sys/wait.h>
+#include <sys/wait.h>
+#include <linux/limits.h>
 #include <iomanip>
 #include "Commands.h"
 
@@ -76,7 +77,7 @@ void _removeBackgroundSign(char *cmd_line) {
 
 // TODO: Add your implementation for classes in Commands.h 
 
-SmallShell::SmallShell() : prompt("smash"), jobs(JobsList()), pid(0), runningPid(-1), pwd(""), lastPwd(""){
+SmallShell::SmallShell() :  jobs(JobsList()), prompt("smash"), pid(0), runningPid(-1), pwd(""), lastPwd(""){
     pid = getpid();
     if (pid == -1){
         perror("smash error: getpid failed");
@@ -288,13 +289,13 @@ void JobsList::updateJobsStatus(){
             int res;
             res = waitpid(job->pid , &wstatus, WNOHANG);
 
-            if(res == -1 || res > 0 && WIFEXITED(wstatus)){
-                job->status == JobStatus::Finished;
+            if((res == -1) || (res > 0 && WIFEXITED(wstatus))){
+                job->status = JobStatus::Finished;
             }
             else if(WIFSTOPPED(wstatus)) {
-                job->status == JobStatus::Stopped;
+                job->status = JobStatus::Stopped;
             }
-            else if(WIFCONTINUED(waitStatus)) {
+            else if(WIFCONTINUED(wstatus)) {
                 job->status = JobStatus::Running;
             }
         }
@@ -320,7 +321,7 @@ void JobsList::removeFinishedJobs(){
 void JobsList::killAllJobs(){
     removeFinishedJobs();
     cout << "smash: sending SIGKILL signal to " << jobs.size() << " jobs:" << endl;
-    auto it = jobs.begin();
+    //auto it = jobs.begin();
     for(auto jobPtr : jobs){
         int ret = kill(jobPtr->pid, SIGKILL);
         if(ret == -1){
@@ -334,7 +335,7 @@ void JobsList::killAllJobs(){
     jobs.clear();
 }
 
-shared_ptr<JobsList::JobEntry> JobsList::getLastJob(int *lastJobId){
+shared_ptr<JobsList::JobEntry> JobsList::getLastJob(){
     if(jobs.empty()){
         return nullptr;
     }
@@ -436,7 +437,7 @@ void ForegroundCommand::execute(SmallShell *smash) {
     smash->getJobsList().removeJobById(jobPtr->jobId);
     cout << jobPtr->commandPtr->getCmd() << jobPtr->pid << endl;
     int wstatus;
-    if(waitpid(jobPtr->pid, wstatus, 0) == -1){
+    if(waitpid(jobPtr->pid, &wstatus, 0) == -1){
         perror("smash error: waitpid failed");
     }
 }

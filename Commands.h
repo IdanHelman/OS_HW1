@@ -82,7 +82,7 @@ public:
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
 public:
-    ChangeDirCommand(const string& cmd_line, const string& cmd_no_sign);
+    ChangeDirCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
 
     virtual ~ChangeDirCommand() {}
 
@@ -91,7 +91,7 @@ public:
 
 class ChangePromptCommand : public BuiltInCommand {
 public:
-    ChangePromptCommand(const string& cmd_line, const string& cmd_no_sign);
+    ChangePromptCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
 
     virtual ~ChangePromptCommand() {}
 
@@ -101,7 +101,7 @@ public:
 
 class GetCurrDirCommand : public BuiltInCommand {
 public:
-    GetCurrDirCommand(const string& cmd_line, const string& cmd_no_sign);
+    GetCurrDirCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
 
     virtual ~GetCurrDirCommand() {}
 
@@ -110,7 +110,7 @@ public:
 
 class ShowPidCommand : public BuiltInCommand {
 public:
-    ShowPidCommand(const string& cmd_line, const string& cmd_no_sign);
+    ShowPidCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
 
     virtual ~ShowPidCommand() {}
 
@@ -122,7 +122,7 @@ class JobsList;
 class QuitCommand : public BuiltInCommand {
 // TODO: Add your data members public:
 public:
-    QuitCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs);
+    QuitCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs): BuiltInCommand(cmd_line, cmd_no_sign) { }
 
     virtual ~QuitCommand() {}
 
@@ -205,7 +205,7 @@ bool operator==(int jobId, std::shared_ptr<JobsList::JobEntry> job);
 class JobsCommand : public BuiltInCommand {
     // TODO: Add your data members
 public:
-    JobsCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs);
+    JobsCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs): BuiltInCommand(cmd_line, cmd_no_sign) { }
 
     virtual ~JobsCommand() {}
 
@@ -225,7 +225,7 @@ public:
 class ForegroundCommand : public BuiltInCommand {
     // TODO: Add your data members
 public:
-    ForegroundCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs);
+    ForegroundCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs): BuiltInCommand(cmd_line, cmd_no_sign) { }
 
     virtual ~ForegroundCommand() {}
 
@@ -243,7 +243,7 @@ public:
 
 class GetUserCommand : public BuiltInCommand {
 public:
-    GetUserCommand(const string& cmd_line, const string& cmd_no_sign);
+    GetUserCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
 
     virtual ~GetUserCommand() {}
 

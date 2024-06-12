@@ -171,6 +171,7 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
 
 void SmallShell::executeCommand(const char *cmd_line) {
     // TODO: Add your implementation here
+    jobs.removeFinishedJobs();
      bool backGround = _isBackgroundCommand(cmd_line);
      std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
      bool isExternal = dynamic_cast<ExternalCommand *>(cmd.get()) != nullptr;
@@ -183,12 +184,11 @@ void SmallShell::executeCommand(const char *cmd_line) {
              if(setpgrp() == -1){
                  perror("smash error: setpgrp failed");
              }
-             jobs.removeFinishedJobs();
              cmd->execute(this);
          }
          else{ //parent
-             if(_isBackgroundCommand(cmd_line)){
-                 jobs.addJob(cmd, getpid(), false);
+             if(backGround){
+                 jobs.addJob(cmd, f_pid, false);
              }
              else{
                  runningPid = f_pid;
@@ -204,8 +204,7 @@ void SmallShell::executeCommand(const char *cmd_line) {
          }
      }
      else{
-         jobs.removeFinishedJobs();
-        cmd->execute(this);
+         cmd->execute(this);
     }
      //Please note that you must fork smash process for some commands (e.g., external commands....)
 }
@@ -376,12 +375,14 @@ void ExternalCommand::execute(SmallShell *smash) {
     if (parsed_cmd.find('?') == string::npos && parsed_cmd.find('*') == string::npos){
         execvp(argv[0], argv);
         perror("smash error: execvp failed");
+        exit(1);
     }
     //complex command
     else{
         char* bash_cmd[] = { (char*)"/bin/bash", (char*)"-c", (char*)parsed_cmd.c_str(), NULL};
         execv("/bin/bash", bash_cmd);
         perror("smash error: execv failed");
+        exit(1);
     }
 }
 

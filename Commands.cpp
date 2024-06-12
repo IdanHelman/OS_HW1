@@ -77,7 +77,7 @@ void _removeBackgroundSign(char *cmd_line) {
 
 // TODO: Add your implementation for classes in Commands.h 
 
-SmallShell::SmallShell() :  jobs(JobsList()), prompt("smash"), pid(0), runningPid(-1), pwd(""), lastPwd(""){
+SmallShell::SmallShell() :  jobs(JobsList()), prompt("smash"), pid(0), runningPid(-1), pwd(""), lastPwd(""), aliases(AliasesTable()){
     pid = getpid();
     if (pid == -1){
         perror("smash error: getpid failed");
@@ -130,17 +130,24 @@ void SmallShell::setPrompt(const string &new_prompt) {
     this->prompt = new_prompt;
 }
 
+AliasesTable& SmallShell::getAliases() {
+    return aliases;
+}
+
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
 std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
     // For example:
+
     char *cur_line = (char *) cmd_line;
     string cmd_s = _trim(string(cur_line));
-    _removeBackgroundSign(cur_line);
-    string cmd_no_sign = _trim(string(cur_line));
-
-    string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n&"));
+    string cmd_no_sign = cmd_s;
+    if (cmd_s.back() == '&') {
+        cmd_no_sign.pop_back();
+    }
+    aliases.replaceAlias(cmd_no_sign);
+    string firstWord = cmd_no_sign.substr(0, cmd_no_sign.find_first_of(" \n&"));
 
 
     if (firstWord.compare("chprompt") == 0) {
@@ -159,11 +166,15 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<ForegroundCommand>(cmd_s, cmd_no_sign, &jobs);
 //    } else if (firstWord.compare("kill") == 0) {
 //        return std::make_shared<KillCommand>(cmd_s, cmd_no_sign, &jobs);
-//    } else if (firstWord.compare("alias") == 0) {
-//        return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
-//    } else if (firstWord.compare("unalias") == 0) {
-//        return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
-    } else {
+    } else if (firstWord.compare("alias") == 0) {
+        return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
+    } else if (firstWord.compare("unalias") == 0) {
+        return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
+//    } else if (firstWord.compare("listdir") == 0){
+//        return std::make_shared<ListDirCommand>(cmd_s, cmd_no_sign);
+//    } else if (firstWord.compare("getuser")){
+//        return std::make_shared<GetUserCommand>(cmd_s, cmd_no_sign);
+    }else {
     return std::make_shared<ExternalCommand>(cmd_s, cmd_no_sign);
     }
 }
@@ -171,9 +182,10 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
 
 void SmallShell::executeCommand(const char *cmd_line) {
     // TODO: Add your implementation here
-    jobs.removeFinishedJobs();
+     jobs.removeFinishedJobs();
      bool backGround = _isBackgroundCommand(cmd_line);
      std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
+     backGround = backGround || _isBackgroundCommand(cmd->getPCmd().c_str());
      bool isExternal = dynamic_cast<ExternalCommand *>(cmd.get()) != nullptr;
      if (isExternal){
          pid_t f_pid = fork();
@@ -209,11 +221,19 @@ void SmallShell::executeCommand(const char *cmd_line) {
      //Please note that you must fork smash process for some commands (e.g., external commands....)
 }
 
+std::string removeSign(const std::string& str) {
+    if (!str.empty() && str[str.find_last_not_of(" \t\n\r\f\v")] == '&') {
+        return str.substr(0, str.find_last_of('&'));
+
+    }
+    return str;
+}
+
 Command::Command(const string& cmd_line, const string& cmd_no_sign){
     cmd = cmd_line;
     parsed_cmd = cmd_no_sign;
     argv = new char*[COMMAND_MAX_ARGS + 1];
-    argc = _parseCommandLine(cmd_no_sign.c_str(), argv);
+    argc = _parseCommandLine(removeSign(parsed_cmd).c_str(), argv);
 }
 
 Command::~Command(){
@@ -222,6 +242,10 @@ Command::~Command(){
 
 const string& Command::getCmd() {
     return this->cmd;
+}
+
+const string& Command::getPCmd() {
+    return this->parsed_cmd;
 }
 
 JobsList::JobEntry::JobEntry(int jobId, pid_t pid, shared_ptr<Command> commandPtr, JobStatus status): jobId(jobId), pid(pid),
@@ -355,6 +379,61 @@ shared_ptr<JobsList::JobEntry> JobsList::getLastStoppedJob(int *jobId){
     return nullptr;
 }
 
+void AliasesTable::printAliases(){
+    for(auto alias : aliases){
+        cout << alias.first << "=" << "'" << alias.second << "'" << endl;
+    }
+}
+
+bool AliasesTable::validFormat(const string &cmd){
+    if(cmd.find_first_of('=') == string::npos){
+        return false;
+    }
+    string key = cmd.substr(0, cmd.find_first_of('='));
+    if(!all_of(key.begin(), key.end(), [](char c){return isalnum(c) || c == '_';})){
+        return false;
+    }
+    if(cmd.find_first_of('=') + 1 != cmd.find_first_of('\'') ||
+                                    cmd[cmd.find_last_not_of(WHITESPACE)] != '\''){
+        return false;
+    }
+    return true;
+}
+
+void AliasesTable::addAlias(const string &cmd){
+    string cmd_no_space = cmd.substr(cmd.find_first_not_of(WHITESPACE));
+    if (!validFormat(cmd_no_space)){
+        cerr << "smash error: alias: Invalid alias format" << endl;
+        return;
+    }
+    string key = cmd_no_space.substr(0, cmd_no_space.find_first_of('='));
+    string value = cmd_no_space.substr(cmd_no_space.find_first_of('\'') + 1, cmd_no_space.find_last_of('\'') - cmd_no_space.find_first_of('\'') - 1);
+    // TODO: check if key is a reserved word or built in command in shell
+    if(aliases.find(key) != aliases.end()){
+        cerr << "smash error: alias: " << key << " already exists or is a reserved command" << endl;
+    }
+    else {
+        aliases[key] = value;
+    }
+}
+
+bool AliasesTable::removeAlias(const string &alias){
+    if(aliases.find(alias) == aliases.end()){
+        return false;
+    }
+    else{
+        aliases.erase(alias);
+        return true;
+    }
+}
+
+void AliasesTable::replaceAlias(string &cmd_line) {
+    string firstWord = cmd_line.substr(0, cmd_line.find_first_of(" \n&"));
+    if(aliases.find(firstWord) != aliases.end()){
+        string alias = aliases[firstWord];
+        cmd_line = alias + cmd_line.substr(firstWord.length());
+    }
+}
 
 
 void ChangePromptCommand::execute(SmallShell *smash) {
@@ -473,6 +552,32 @@ void ChangeDirCommand::execute(SmallShell *smash) {
         else{
             smash->setLastPwd(smash->getPwd());
             smash->setPwd(argv[1]);
+        }
+    }
+}
+
+void aliasCommand::execute(SmallShell *smash) {
+    AliasesTable& aliases = smash->getAliases();
+    if(argc == 1){
+        aliases.printAliases();
+    }
+    else{
+        string firstWord = argv[0];
+        aliases.addAlias(cmd.substr(firstWord.length() + 1));
+    }
+}
+
+void unaliasCommand::execute(SmallShell *smash) {
+    AliasesTable& aliases = smash->getAliases();
+    if(argc == 1){
+        cerr << "smash error: alias: Not enough arguments" << endl;
+    }
+    else{
+        for (int i = 1; i < argc; ++i) {
+            if(!aliases.removeAlias(argv[i])){
+                cerr << "smash error: alias: " << argv[i] << " alias does not exist" << endl;
+                break;
+            }
         }
     }
 }

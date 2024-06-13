@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <algorithm>
+#include <map>
 
 #define COMMAND_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
@@ -25,6 +26,7 @@ public:
     Command(const string& cmd_line, const string& cmd_no_sign);
 
     const string& getCmd();
+    const string& getPCmd();
     virtual ~Command();
 
     virtual void execute(SmallShell *smash) = 0;
@@ -240,34 +242,52 @@ public:
 //
 //    void execute(SmallShell *smash) override;
 //};
+//
+//class GetUserCommand : public BuiltInCommand {
+//public:
+//    GetUserCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
+//
+//    virtual ~GetUserCommand() {}
+//
+//    void execute(SmallShell *smash) override;
+//};
 
-class GetUserCommand : public BuiltInCommand {
+class aliasCommand : public BuiltInCommand {
 public:
-    GetUserCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
+    aliasCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
 
-    virtual ~GetUserCommand() {}
+    virtual ~aliasCommand() {}
 
     void execute(SmallShell *smash) override;
 };
 
-//class aliasCommand : public BuiltInCommand {
-//public:
-//    aliasCommand(const string& cmd_line, const string& cmd_no_sign);
-//
-//    virtual ~aliasCommand() {}
-//
-//    void execute(SmallShell *smash) override;
-//};
-//
-//class unaliasCommand : public BuiltInCommand {
-//public:
-//    unaliasCommand(const string& cmd_line, const string& cmd_no_sign);
-//
-//    virtual ~unaliasCommand() {}
-//
-//    void execute(SmallShell *smash) override;
-//};
+class unaliasCommand : public BuiltInCommand {
+public:
+    unaliasCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
 
+    virtual ~unaliasCommand() {}
+
+    void execute(SmallShell *smash) override;
+};
+
+class AliasesTable {
+    map<string, string> aliases;
+
+    bool validFormat(const string& cmd);
+public:
+
+    AliasesTable() = default;
+
+    ~AliasesTable() = default;
+
+    void addAlias(const string& cmd);
+
+    bool removeAlias(const string& alias);
+
+    void printAliases();
+
+    void replaceAlias(string& cmd_line);
+};
 
 class SmallShell {
 private:
@@ -279,7 +299,7 @@ private:
     int runningPid;
     string pwd;
     string lastPwd;
-
+    AliasesTable aliases;
 
 public:
     std::shared_ptr<Command> CreateCommand(const char *cmd_line);
@@ -288,6 +308,7 @@ public:
     int getPid() const;
     int getFgPid() const;
     void setFgPid(int newPid);
+    AliasesTable& getAliases();
     string getPwd() const;
     string getLastPwd() const;
     void setPwd(const string& pwd);

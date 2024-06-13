@@ -6,7 +6,11 @@
 #include <sys/wait.h>
 #include <linux/limits.h>
 #include <iomanip>
+#include <fcntl.h>
 #include "Commands.h"
+#include <chrono>
+#include <thread>
+
 
 using namespace std;
 
@@ -134,6 +138,10 @@ AliasesTable& SmallShell::getAliases() {
     return aliases;
 }
 
+bool SmallShell::isRedirectionCommand(const string& cmd_line){
+    return cmd_line.find(" > ") != string::npos || cmd_line.find(" >> ") != string::npos;
+}
+
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
@@ -147,8 +155,12 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         cmd_no_sign.pop_back();
     }
     aliases.replaceAlias(cmd_no_sign);
-    string firstWord = cmd_no_sign.substr(0, cmd_no_sign.find_first_of(" \n&"));
 
+    if(isRedirectionCommand(cmd_no_sign)){
+        return std::make_shared<RedirectionCommand>(cmd_s, cmd_no_sign);
+    }
+
+    string firstWord = cmd_no_sign.substr(0, cmd_no_sign.find_first_of(" \n&"));
 
     if (firstWord.compare("chprompt") == 0) {
         return std::make_shared<ChangePromptCommand>(cmd_s, cmd_no_sign);
@@ -164,8 +176,8 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<JobsCommand>(cmd_s, cmd_no_sign, &jobs);
     } else if (firstWord.compare("fg") == 0) {
         return std::make_shared<ForegroundCommand>(cmd_s, cmd_no_sign, &jobs);
-//    } else if (firstWord.compare("kill") == 0) {
-//        return std::make_shared<KillCommand>(cmd_s, cmd_no_sign, &jobs);
+   } else if (firstWord.compare("kill") == 0) {
+       return std::make_shared<KillCommand>(cmd_s, cmd_no_sign, &jobs);
     } else if (firstWord.compare("alias") == 0) {
         return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
     } else if (firstWord.compare("unalias") == 0) {
@@ -174,6 +186,8 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
 //        return std::make_shared<ListDirCommand>(cmd_s, cmd_no_sign);
 //    } else if (firstWord.compare("getuser")){
 //        return std::make_shared<GetUserCommand>(cmd_s, cmd_no_sign);
+    } else if(firstWord.compare("watch")){
+        return std::make_shared<WatchCommand>(cmd_s, cmd_no_sign);
     }else {
     return std::make_shared<ExternalCommand>(cmd_s, cmd_no_sign);
     }
@@ -187,7 +201,11 @@ void SmallShell::executeCommand(const char *cmd_line) {
      std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
      backGround = backGround || _isBackgroundCommand(cmd->getPCmd().c_str());
      bool isExternal = dynamic_cast<ExternalCommand *>(cmd.get()) != nullptr;
-     if (isExternal){
+     bool isRedirection = dynamic_cast<RedirectionCommand *>(cmd.get()) != nullptr;
+     if(isRedirection){
+            cmd->execute(this);
+     }
+     else if (isExternal){
          pid_t f_pid = fork();
          if (f_pid == -1){
              perror("smash error: fork failed");
@@ -346,7 +364,7 @@ void JobsList::removeFinishedJobs(){
 
 //add printing
 void JobsList::killAllJobs(){
-    removeFinishedJobs();
+    //removeFinishedJobs();
     cout << "smash: sending SIGKILL signal to " << jobs.size() << " jobs:" << endl;
     //auto it = jobs.begin();
     for(auto jobPtr : jobs){
@@ -486,6 +504,65 @@ void JobsCommand::execute(SmallShell *smash) {
     smash->getJobsList().printJobsList();
 }
 
+int KillCommand::sigEditor(char* sig){
+    //int sigNum;
+    string sigStr = sig;
+    if(sigStr[0] != '-'){ //no - sign at the beggining
+        throw std::exception();
+    }
+    if(sigStr.size() == 1){
+        throw std::exception();
+    }
+    sigStr = sigStr.substr(1);
+    return stoi(sigStr); //maybe add another check
+}
+
+void KillCommand::execute(SmallShell *smash){
+    if(argc != 3){
+        cerr << "smash error: kill: invalid arguments" << endl;
+        return;
+    }
+    int sig, jobId;
+    try{
+        sig = sigEditor(argv[1]);
+        jobId = stoi(argv[2]);
+    }
+    catch(...){
+        cerr << "smash error: kill: invalid arguments" << endl;
+        return;
+    }
+
+    JobsList::JobEntry* jobPtr = smash->getJobsList().getJobById(jobId).get();
+    //can you kill a job that is finished?
+    if(jobPtr == nullptr || jobPtr->status == JobsList::JobStatus::Killed || jobPtr->status == JobsList::JobStatus::Finished){
+        cerr << "smash error: kill: job-id " << jobId << " does not exist" << endl;
+        return;
+    }
+
+    if(!((1 <= sig) && (sig <= 31))){
+        cerr << "smash error: kill: job-id " << jobId << " does not exist" << endl;
+        return;
+    }
+
+    int ret = kill(jobPtr->pid, sig);
+    if(ret == -1){
+        perror("smash error: kill failed");
+        return;
+    }
+
+    cout << "signal number " << sig << " was sent to pid " << jobPtr->pid << endl;
+
+    if(sig == SIGKILL){
+        jobPtr->status = JobsList::JobStatus::Killed;
+    }
+    else if(sig == SIGCONT){
+        jobPtr->status = JobsList::JobStatus::Running;
+    }
+    else if(sig == SIGSTOP){
+        jobPtr->status = JobsList::JobStatus::Stopped;
+    }
+}
+
 void ForegroundCommand::execute(SmallShell *smash) {
     shared_ptr<JobsList::JobEntry> jobPtr = nullptr;
     if(argc == 2){
@@ -494,7 +571,7 @@ void ForegroundCommand::execute(SmallShell *smash) {
             jobId = stoi(argv[1]);
         }
         catch(...){
-            cout << "smash error: fg: invalid arguments" << endl;
+            cerr << "smash error: fg: invalid arguments" << endl;
             return;
         }
         jobPtr = smash->getJobsList().getJobById(jobId);
@@ -580,4 +657,171 @@ void unaliasCommand::execute(SmallShell *smash) {
             }
         }
     }
+}
+
+
+//maybe change this
+RedirectionCommand::RedirectionType RedirectionCommand::getRedirectionType(){
+    char sign = '\0';
+    for(int i = 0; i < argc; i++){
+        if(strcmp(argv[i], ">") == 0){
+            if(sign != '\0'){
+                cerr << "smash error: redirection: multiple redirection signs" << endl; //maybe remove this
+                return RedirectionType::Error;
+            }
+            sign = '>';
+            //break;
+        }
+        else if(strcmp(argv[i], ">>") == 0){
+            if(sign != '\0'){
+                cerr << "smash error: redirection: multiple redirection signs" << endl; //maybe remove this
+                return RedirectionType::Error;
+            }
+            sign = 'a'; //a is for >> sign
+            //break;
+        }
+    }
+    if(sign == '>'){
+        return RedirectionType::Overwrite;
+    }
+    else if(sign == 'a'){
+        return RedirectionType::Append;
+    }
+    else{
+        return RedirectionType::Error;
+    }
+}
+
+string RedirectionCommand::getChoppedCommand(){
+    size_t pos = parsed_cmd.find('>');
+    return parsed_cmd.substr(0, pos);
+}
+
+void RedirectionCommand::execute(SmallShell *smash) {
+    RedirectionType type = getRedirectionType();
+    if(type == RedirectionType::Error){ //maybe?
+        cout << "got here" << endl;
+        cerr << "smash error: redirection: invalid arguments" << endl;
+        return;
+    }
+    int fd;
+    if(type == RedirectionType::Overwrite){
+        fd = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    }
+    else if(type == RedirectionType::Append){
+        fd = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, 0666);
+    }
+    if(fd == -1){
+        perror("smash error: open failed");
+        return;
+    }
+    //changing output to fd
+    int stdout = dup(STDOUT_FILENO);
+    //close(STDOUT_FILENO);
+    
+    //dup(fd);
+    int dupRet = dup2(fd, STDOUT_FILENO);
+    if(dupRet == -1){
+        perror("smash error: dup2 failed");
+        close(fd);
+        return;
+    }
+
+    //executing the command
+    string choppedCmd = getChoppedCommand();
+    smash->executeCommand(choppedCmd.c_str());
+
+    //changing output back to STD_OUT
+    dupRet = dup2(stdout, STDOUT_FILENO);
+    if(dupRet == -1){
+        perror("smash error: dup2 failed");
+        close(fd);
+        return;
+    }
+    close(fd);
+}
+
+bool WatchCommand::isValidCommand(const string& command){
+    if(access(command.c_str(), F_OK)){
+        return true;
+    }
+    return false;
+}
+
+void WatchCommand::execute(SmallShell *smash){
+    if(argc < 2){
+        cerr << "smash error: watch: invalid arguments" << endl;
+        return;
+    }
+    int secs = 2;
+    int isDefault = false;
+    try{
+        secs = stoi(argv[1]);
+    }
+    catch(...){
+        isDefault = true;
+    }
+    if(secs < 1){
+        cerr << "smash error: watch: invalid arguments" << endl;
+        return;
+    }
+    string choppedCmd;
+    if(isDefault){
+        size_t pos = cmd.find("watch");
+        choppedCmd = cmd.substr(pos + 5);
+    }
+    else{
+        size_t pos = cmd.find(argv[1]) + strlen(argv[1]);
+        choppedCmd = cmd.substr(pos);
+    }
+    Command* cmd = smash->CreateCommand(choppedCmd.c_str()).get();
+}
+
+int GetUserCommand::getUserId(string& pid){
+    int fd = open(("/proc/" + pid + "/status").c_str(), O_RDONLY);
+    if(fd == -1){
+        return -1;
+    }
+    char buffer[1024];
+    int bytesRead = read(fd, buffer, 1024);
+    if(bytesRead == -1){ //is this needed?
+        close(fd);
+        perror("smash error: read failed");
+        return -1;
+    }
+    string fileContent(buffer);
+    size_t pos = fileContent.find("Uid:");
+    if(pos == string::npos){
+        close(fd);
+        return -1;
+    }
+    
+}
+
+int GetUserCommand::getGroupId(string& pid){
+
+}
+
+void GetUserCommand::execute(SmallShell *smash) {
+    if(argc != 2){
+        cerr << "smash error: getuser: too many arguments" << endl;
+        return;
+    }
+    string strPid = argv[1];
+    int pid;
+    try{
+        pid = stoi(strPid);
+    }
+    catch(...){
+        cerr << "smash error: getuser: process " << strPid << " does not exist" << endl;
+        return;
+    }
+    //checks that pid actually exists
+    if(kill(pid, 0) == -1){
+        if(errno == ESRCH){
+            cerr << "smash error: getuser: process " << strPid << " does not exist" << endl;
+            return;
+        }
+    }
+    
 }

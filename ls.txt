@@ -1,0 +1,18 @@
+total 1244
+-rw-rw-r-- 1 student student    160 Jun 13 09:50 CMakeLists.txt
+-rw-rw-r-- 1 student student  21719 Jun 13 13:39 Commands.cpp
+-rw-rw-r-- 1 student student   8926 Jun 13 12:48 Commands.h
+-rw-rw-r-- 1 student student 825336 Jun 13 13:40 Commands.o
+-rw-rw-r-- 1 student student      0 Jun 13 13:47 ls.txt
+-rw-rw-r-- 1 student student    914 Jun 13 09:50 Makefile
+-rw-rw-r-- 1 student student     18 Jun 13 13:43 pid.txt
+-rw-rw-r-- 1 student student   3093 Jun 13 09:50 README.txt
+-rw-rw-r-- 1 student student    492 Jun 13 09:50 signals.cpp
+-rw-rw-r-- 1 student student    119 Jun 13 09:50 signals.h
+-rw-rw-r-- 1 student student   6168 Jun 13 09:50 signals.o
+-rwxrwxr-x 1 student student 349152 Jun 13 13:40 smash
+-rw-rw-r-- 1 student student    599 Jun 13 09:50 smash.cpp
+-rw-rw-r-- 1 student student   8120 Jun 13 09:50 smash.o
+-rw-rw-r-- 1 student student    104 Jun 13 10:18 test_expected_output1.txt
+-rw-rw-r-- 1 student student     93 Jun 13 09:50 test_input1.txt
+-rw-rw-r-- 1 student student    119 Jun 13 13:40 test_output1.txt

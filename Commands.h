@@ -61,25 +61,33 @@ public:
 //    void execute(SmallShell *smash) override;
 //};
 //
-//class WatchCommand : public Command {
-//    // TODO: Add your data members
-//public:
-//    WatchCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
-//
-//    virtual ~WatchCommand() {}
-//
-//    void execute(SmallShell *smash) override;
-//};
-//
-//class RedirectionCommand : public Command {
-//    // TODO: Add your data members
-//public:
-//    explicit RedirectionCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
-//
-//    virtual ~RedirectionCommand() {}
-//
-//    void execute(SmallShell *smash) override;
-//};
+class WatchCommand : public Command {
+   // TODO: Add your data members
+public:
+   WatchCommand(const string& cmd_line, const string& cmd_no_sign): Command(cmd_line, cmd_no_sign) {}
+
+   virtual ~WatchCommand() {}
+
+   void execute(SmallShell *smash) override;
+
+   static bool isValidCommand(const string& command);
+};
+
+class RedirectionCommand : public Command {
+   // TODO: Add your data members
+public:
+    enum RedirectionType {Error, Overwrite, Append};
+    explicit RedirectionCommand(const string& cmd_line, const string& cmd_no_sign): Command(cmd_line, cmd_no_sign) {}
+
+    virtual ~RedirectionCommand() {}
+
+    void execute(SmallShell *smash) override;
+
+    RedirectionType getRedirectionType();
+
+    string getChoppedCommand();
+   
+};
 
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
@@ -132,9 +140,9 @@ public:
 };
 
 
-class JobsList {
-    enum JobStatus{Running, Finished, Killed, Stopped};
+class JobsList { 
 public:
+    enum JobStatus{Running, Finished, Killed, Stopped};
     class JobEntry{
     public:
         int jobId;
@@ -214,15 +222,17 @@ public:
     void execute(SmallShell *smash) override;
 };
 
-//class KillCommand : public BuiltInCommand {
-//    // TODO: Add your data members
-//public:
-//    KillCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs);
-//
-//    virtual ~KillCommand() {}
-//
-//    void execute(SmallShell *smash) override;
-//};
+class KillCommand : public BuiltInCommand {
+   // TODO: Add your data members
+public:
+   KillCommand(const string& cmd_line, const string& cmd_no_sign, JobsList *jobs): BuiltInCommand(cmd_line, cmd_no_sign) { }
+
+   virtual ~KillCommand() {}
+
+   void execute(SmallShell *smash) override;
+
+   static int sigEditor(char* sig);
+};
 
 class ForegroundCommand : public BuiltInCommand {
     // TODO: Add your data members
@@ -243,14 +253,20 @@ public:
 //    void execute(SmallShell *smash) override;
 //};
 //
-//class GetUserCommand : public BuiltInCommand {
-//public:
-//    GetUserCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
-//
-//    virtual ~GetUserCommand() {}
-//
-//    void execute(SmallShell *smash) override;
-//};
+class GetUserCommand : public BuiltInCommand {
+public:
+   GetUserCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
+
+   virtual ~GetUserCommand() {}
+
+   void execute(SmallShell *smash) override;
+
+   int getUserId(string& pid);
+
+   int getGroupId(string& pid);
+
+   string getInfoFromText(string& text, string& info);
+};
 
 class aliasCommand : public BuiltInCommand {
 public:
@@ -326,6 +342,9 @@ public:
     ~SmallShell();
 
     void executeCommand(const char *cmd_line);
+
+    bool isRedirectionCommand(const string& cmd_line);
+
     // TODO: add extra methods as needed
 };
 

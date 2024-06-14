@@ -15,4 +15,7 @@ void ctrlCHandler(int sig_num) {
         SmallShell::getInstance().setFgPid(-1);
         cout << "smash: process " << pid << " was killed" << endl;
     }
+    else {
+        cout << SmallShell::getInstance().getPrompt() << "> " << flush;
+    }
 }

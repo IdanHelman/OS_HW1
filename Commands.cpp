@@ -10,7 +10,8 @@
 #include "Commands.h"
 #include <chrono>
 #include <thread>
-
+#include <pwd.h>
+#include<grp.h>
 
 using namespace std;
 
@@ -184,12 +185,12 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
 //    } else if (firstWord.compare("listdir") == 0){
 //        return std::make_shared<ListDirCommand>(cmd_s, cmd_no_sign);
-//    } else if (firstWord.compare("getuser")){
-//        return std::make_shared<GetUserCommand>(cmd_s, cmd_no_sign);
-    } else if(firstWord.compare("watch")){
+    } else if (firstWord.compare("getuser") == 0){
+       return std::make_shared<GetUserCommand>(cmd_s, cmd_no_sign);
+    } else if(firstWord.compare("watch") == 0){
         return std::make_shared<WatchCommand>(cmd_s, cmd_no_sign);
-    }else {
-    return std::make_shared<ExternalCommand>(cmd_s, cmd_no_sign);
+    } else {
+        return std::make_shared<ExternalCommand>(cmd_s, cmd_no_sign);
     }
 }
 
@@ -777,7 +778,9 @@ void WatchCommand::execute(SmallShell *smash){
     Command* cmd = smash->CreateCommand(choppedCmd.c_str()).get();
 }
 
+
 int GetUserCommand::getUserId(string& pid){
+    //creating the file for getting the info
     int fd = open(("/proc/" + pid + "/status").c_str(), O_RDONLY);
     if(fd == -1){
         return -1;
@@ -790,16 +793,75 @@ int GetUserCommand::getUserId(string& pid){
         return -1;
     }
     string fileContent(buffer);
+
+    //finding the Uid
     size_t pos = fileContent.find("Uid:");
     if(pos == string::npos){
         close(fd);
         return -1;
     }
-    
+    string uidStr = "";
+    pos += 5;
+    while(isdigit(fileContent[pos])){
+        uidStr += fileContent[pos];
+        pos++;
+    }
+
+    //cout << "uid is " << uid << endl;
+
+    //converting to int and returning
+    int uid;
+    try{
+        uid = stoi(uidStr);
+    }
+    catch(...){
+        return -1;
+    }
+
+    close(fd);
+    return uid;
 }
 
 int GetUserCommand::getGroupId(string& pid){
+    //creating the file for getting the info
+    int fd = open(("/proc/" + pid + "/status").c_str(), O_RDONLY);
+    if(fd == -1){
+        return -1;
+    }
+    char buffer[1024];
+    int bytesRead = read(fd, buffer, 1024);
+    if(bytesRead == -1){ //is this needed?
+        close(fd);
+        perror("smash error: read failed");
+        return -1;
+    }
+    string fileContent(buffer);
 
+    //finding the Group Id
+    size_t pos = fileContent.find("Gid:");
+    if(pos == string::npos){
+        close(fd);
+        return -1;
+    }
+    string gidStr = "";
+    pos += 5;
+    while(isdigit(fileContent[pos])){
+        gidStr += fileContent[pos];
+        pos++;
+    }
+
+    //cout << "uid is " << uid << endl;
+    //converting to a number and returning
+    int gid;
+    try{
+        gid = stoi(gidStr);
+    }
+    catch(...){
+        return -1;
+    }
+
+    close(fd);
+    return gid;
 }
 
 void GetUserCommand::execute(SmallShell *smash) {
@@ -823,5 +885,21 @@ void GetUserCommand::execute(SmallShell *smash) {
             return;
         }
     }
-    
+    int uid = getUserId(strPid);
+    int gid = getGroupId(strPid);
+    if(uid == -1 || gid == -1){ //is this good?
+        cerr << "smash error: getuser: process " << strPid << " does not exist" << endl;
+    }
+    struct passwd* pwd = getpwuid(uid);
+    struct group* grp = getgrgid(gid);
+    if(pwd == nullptr){ //is this good?
+        perror("smash error: getpwuid failed");
+        return;
+    }
+    if(grp == nullptr){
+        perror("smash error: getgrgid failed");
+        return;
+    }
+    cout << "User: " << pwd->pw_name << endl << "Group: " << grp->gr_name << endl;
+    return;
 }

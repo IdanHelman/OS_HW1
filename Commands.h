@@ -264,6 +264,8 @@ public:
    int getUserId(string& pid);
 
    int getGroupId(string& pid);
+
+   string getInfoFromText(string& text, string& info);
 };
 
 class aliasCommand : public BuiltInCommand {

@@ -154,8 +154,8 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
     // For example:
 
     char *cur_line = (char *) cmd_line;
-    string cmd_s = _trim(string(cur_line));
-    string cmd_no_sign = cmd_s;
+    string cmd_s = (string(cur_line));
+    string cmd_no_sign = _trim(cmd_s);
     if (cmd_s.back() == '&') {
         cmd_no_sign.pop_back();
     }
@@ -427,16 +427,22 @@ bool AliasesTable::validFormat(const string &cmd) {
     return true;
 }
 
+static bool isReservedWord(const string &word){
+    return word == "chprompt" || word == "showpid" || word == "pwd" || word == "cd" || word == "quit"
+           || word == "jobs" || word == "fg" || word == "kill" || word == "listdir" || word == "getuser" || word == "watch"
+           || word == "alias" || word == "unalias";
+}
+
 void AliasesTable::addAlias(const string &cmd){
     string cmd_no_space = cmd.substr(cmd.find_first_not_of(WHITESPACE));
     if (!validFormat(cmd_no_space)){
-        cerr << "smash error: alias: Invalid alias format" << endl;
+        cerr << "smash error: alias: invalid alias format" << endl;
         return;
     }
     string key = cmd_no_space.substr(0, cmd_no_space.find_first_of('='));
     string value = cmd_no_space.substr(cmd_no_space.find_first_of('\'') + 1, cmd_no_space.find_last_of('\'') - cmd_no_space.find_first_of('\'') - 1);
     // TODO: check if key is a reserved word or built in command in shell
-    if(aliases.find(key) != aliases.end()){
+    if(aliases.find(key) != aliases.end() || isReservedWord(key)){
         cerr << "smash error: alias: " << key << " already exists or is a reserved command" << endl;
     }
     else {
@@ -661,12 +667,12 @@ void aliasCommand::execute(SmallShell *smash) {
 void unaliasCommand::execute(SmallShell *smash) {
     AliasesTable& aliases = smash->getAliases();
     if(argc == 1){
-        cerr << "smash error: alias: Not enough arguments" << endl;
+        cerr << "smash error: unalias: not enough arguments" << endl;
     }
     else{
         for (int i = 1; i < argc; ++i) {
             if(!aliases.removeAlias(argv[i])){
-                cerr << "smash error: alias: " << argv[i] << " alias does not exist" << endl;
+                cerr << "smash error: unalias: " << argv[i] << " alias does not exist" << endl;
                 break;
             }
         }
@@ -996,6 +1002,8 @@ void ListDirCommand::execute(SmallShell *smash) {
     }
 
     struct dirent* entry;
+    vector<string> files;
+    map<string, string> others;
     while ((entry = readdir(dir)) != nullptr) {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
@@ -1010,25 +1018,37 @@ void ListDirCommand::execute(SmallShell *smash) {
 
         string type;
         if (S_ISREG(entry_stat.st_mode)) {
-            type = "file";
+            files.push_back(entry->d_name);
         } else if (S_ISDIR(entry_stat.st_mode)) {
-            type = "directory";
+            others[entry->d_name] = "directory";
         } else if (S_ISLNK(entry_stat.st_mode)) {
-            type = "link";
-        } else {//maybe remove
-            type = "other";
-        }
-
-        cout << type << ": " << entry->d_name;
-        if(type == "link"){
             char link[PATH_MAX];
             if (readlink(entry_path.c_str(), link, PATH_MAX) == -1) {
                 perror("smash error: readlink failed");
             }
-            cout << " -> " << link;
+            string key = string(entry->d_name) + " -> " + link;
+            others[key] = "link";
+        } else if (S_ISCHR(entry_stat.st_mode)) {
+            others[entry->d_name] = "char dev";
+        } else if (S_ISBLK(entry_stat.st_mode)) {
+            others[entry->d_name] = "block dev";
+        } else if (S_ISFIFO(entry_stat.st_mode)) {
+            others[entry->d_name] = "fifo";
+        } else if (S_ISSOCK(entry_stat.st_mode)) {
+            others[entry->d_name] = "socket";
+        } else {
+            others[entry->d_name] = "other";
         }
-        cout << endl;
+    }
+
+    sort(files.begin(), files.end());
+    for (const auto& file : files) {
+        cout << "file: " << file << endl;
+    }
+    for (const auto& other : others) {
+        cout << other.second << ": " << other.first << endl;
     }
 
     closedir(dir);
 }
+

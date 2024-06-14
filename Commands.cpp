@@ -161,17 +161,24 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
     }
     aliases.replaceAlias(cmd_no_sign);
 
-    if(isRedirectionCommand(cmd_no_sign)){
-        return std::make_shared<RedirectionCommand>(cmd_s, cmd_no_sign);
-    }
-
-
-    if(cmd_no_sign.find(" | ") != string::npos || cmd_no_sign.find(" |& ") != string::npos){
-        return std::make_shared<PipeCommand>(cmd_s, cmd_no_sign);
-    }
     string firstWord = cmd_no_sign.substr(0, cmd_no_sign.find_first_of(" \n&"));
 
-    if (firstWord.compare("chprompt") == 0) {
+    //first check for alias
+    if (firstWord.compare("alias") == 0) {
+        return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
+    } else if (firstWord.compare("unalias") == 0) {
+        return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
+    }
+
+    //check for redirection or pipe
+    else if(isRedirectionCommand(cmd_no_sign)){
+        return std::make_shared<RedirectionCommand>(cmd_s, cmd_no_sign);
+    } else if(cmd_no_sign.find(" | ") != string::npos || cmd_no_sign.find(" |& ") != string::npos){
+        return std::make_shared<PipeCommand>(cmd_s, cmd_no_sign);
+    }
+
+    //other commands
+    else if (firstWord.compare("chprompt") == 0) {
         return std::make_shared<ChangePromptCommand>(cmd_s, cmd_no_sign);
     } else if (firstWord.compare("showpid") == 0) {
         return std::make_shared<ShowPidCommand>(cmd_s, cmd_no_sign);
@@ -187,18 +194,8 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<ForegroundCommand>(cmd_s, cmd_no_sign, &jobs);
    } else if (firstWord.compare("kill") == 0) {
        return std::make_shared<KillCommand>(cmd_s, cmd_no_sign, &jobs);
-    } else if (firstWord.compare("alias") == 0) {
-        return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
-    } else if (firstWord.compare("unalias") == 0) {
-        return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
-    } else if (firstWord.compare("listdir") == 0){
+    }  else if (firstWord.compare("listdir") == 0){
         return std::make_shared<ListDirCommand>(cmd_s, cmd_no_sign);
-//    } else if (firstWord.compare("getuser")){
-//        return std::make_shared<GetUserCommand>(cmd_s, cmd_no_sign);
-    }else {
-    return std::make_shared<ExternalCommand>(cmd_s, cmd_no_sign);
-//    } else if (firstWord.compare("listdir") == 0){
-//        return std::make_shared<ListDirCommand>(cmd_s, cmd_no_sign);
     } else if (firstWord.compare("getuser") == 0){
        return std::make_shared<GetUserCommand>(cmd_s, cmd_no_sign);
     } else if(firstWord.compare("watch") == 0){
@@ -216,11 +213,7 @@ void SmallShell::executeCommand(const char *cmd_line) {
      std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
      backGround = backGround || _isBackgroundCommand(cmd->getPCmd().c_str());
      bool isExternal = dynamic_cast<ExternalCommand *>(cmd.get()) != nullptr;
-     bool isRedirection = dynamic_cast<RedirectionCommand *>(cmd.get()) != nullptr;
-     if(isRedirection){
-            cmd->execute(this);
-     }
-     else if (isExternal){
+     if (isExternal){
          pid_t f_pid = fork();
          if (f_pid == -1){
              perror("smash error: fork failed");
@@ -248,10 +241,11 @@ void SmallShell::executeCommand(const char *cmd_line) {
              }
          }
      }
+
+     //not external command - including redirection and pipe
      else{
          cmd->execute(this);
     }
-     //Please note that you must fork smash process for some commands (e.g., external commands....)
 }
 
 std::string removeSign(const std::string& str) {

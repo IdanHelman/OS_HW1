@@ -51,16 +51,16 @@ public:
     void execute(SmallShell *smash) override;
 };
 
-//class PipeCommand : public Command {
-//    // TODO: Add your data members
-//public:
-//    PipeCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
-//
-//    virtual ~PipeCommand() {}
-//
-//    void execute(SmallShell *smash) override;
-//};
-//
+class PipeCommand : public Command {
+    // TODO: Add your data members
+public:
+    PipeCommand(const string& cmd_line, const string& cmd_no_sign): Command(cmd_line, cmd_no_sign) {}
+
+    virtual ~PipeCommand() {}
+
+    void execute(SmallShell *smash) override;
+};
+
 class WatchCommand : public Command {
    // TODO: Add your data members
 public:
@@ -86,7 +86,7 @@ public:
     RedirectionType getRedirectionType();
 
     string getChoppedCommand();
-   
+
 };
 
 class ChangeDirCommand : public BuiltInCommand {
@@ -140,7 +140,7 @@ public:
 };
 
 
-class JobsList { 
+class JobsList {
 public:
     enum JobStatus{Running, Finished, Killed, Stopped};
     class JobEntry{
@@ -244,15 +244,15 @@ public:
     void execute(SmallShell *smash) override;
 };
 
-//class ListDirCommand : public BuiltInCommand {
-//public:
-//    ListDirCommand(string cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
-//
-//    virtual ~ListDirCommand() {}
-//
-//    void execute(SmallShell *smash) override;
-//};
-//
+class ListDirCommand : public BuiltInCommand {
+public:
+    ListDirCommand(string cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }
+
+    virtual ~ListDirCommand() {}
+
+    void execute(SmallShell *smash) override;
+};
+
 class GetUserCommand : public BuiltInCommand {
 public:
    GetUserCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) { }

@@ -12,6 +12,9 @@
 #include <thread>
 #include <pwd.h>
 #include<grp.h>
+#include <regex>
+#include <dirent.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -161,6 +164,10 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<RedirectionCommand>(cmd_s, cmd_no_sign);
     }
 
+
+    if(cmd_no_sign.find(" | ") != string::npos || cmd_no_sign.find(" |& ") != string::npos){
+        return std::make_shared<PipeCommand>(cmd_s, cmd_no_sign);
+    }
     string firstWord = cmd_no_sign.substr(0, cmd_no_sign.find_first_of(" \n&"));
 
     if (firstWord.compare("chprompt") == 0) {
@@ -183,6 +190,12 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
     } else if (firstWord.compare("unalias") == 0) {
         return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
+    } else if (firstWord.compare("listdir") == 0){
+        return std::make_shared<ListDirCommand>(cmd_s, cmd_no_sign);
+//    } else if (firstWord.compare("getuser")){
+//        return std::make_shared<GetUserCommand>(cmd_s, cmd_no_sign);
+    }else {
+    return std::make_shared<ExternalCommand>(cmd_s, cmd_no_sign);
 //    } else if (firstWord.compare("listdir") == 0){
 //        return std::make_shared<ListDirCommand>(cmd_s, cmd_no_sign);
     } else if (firstWord.compare("getuser") == 0){
@@ -404,16 +417,16 @@ void AliasesTable::printAliases(){
     }
 }
 
-bool AliasesTable::validFormat(const string &cmd){
-    if(cmd.find_first_of('=') == string::npos){
+bool AliasesTable::validFormat(const string &cmd) {
+    if (cmd.find_first_of('=') == string::npos) {
         return false;
     }
     string key = cmd.substr(0, cmd.find_first_of('='));
-    if(!all_of(key.begin(), key.end(), [](char c){return isalnum(c) || c == '_';})){
+    if (!all_of(key.begin(), key.end(), [](char c) { return isalnum(c) || c == '_'; })) {
         return false;
     }
-    if(cmd.find_first_of('=') + 1 != cmd.find_first_of('\'') ||
-                                    cmd[cmd.find_last_not_of(WHITESPACE)] != '\''){
+    if (cmd.find_first_of('=') + 1 != cmd.find_first_of('\'') ||
+        cmd[cmd.find_last_not_of(WHITESPACE)] != '\'') {
         return false;
     }
     return true;
@@ -608,6 +621,9 @@ void ChangeDirCommand::execute(SmallShell *smash) {
     if(argc > 2){
         cerr << "smash error: cd: too many arguments" << endl;
     }
+    else if(argc == 1){
+        return;
+    }
     else if (strcmp(argv[1], "-") == 0){
         if (smash->getLastPwd().empty()){
             cerr << "smash error: cd: OLDPWD not set" << endl;
@@ -629,7 +645,9 @@ void ChangeDirCommand::execute(SmallShell *smash) {
         }
         else{
             smash->setLastPwd(smash->getPwd());
-            smash->setPwd(argv[1]);
+            char new_pwd[PATH_MAX];
+            getcwd(new_pwd, PATH_MAX);
+            smash->setPwd(new_pwd);
         }
     }
 }
@@ -719,7 +737,7 @@ void RedirectionCommand::execute(SmallShell *smash) {
     //changing output to fd
     int stdout = dup(STDOUT_FILENO);
     //close(STDOUT_FILENO);
-    
+
     //dup(fd);
     int dupRet = dup2(fd, STDOUT_FILENO);
     if(dupRet == -1){
@@ -902,4 +920,120 @@ void GetUserCommand::execute(SmallShell *smash) {
     }
     cout << "User: " << pwd->pw_name << endl << "Group: " << grp->gr_name << endl;
     return;
+}
+
+void PipeCommand::execute(SmallShell *smash) {
+    bool error = parsed_cmd.find(" |& ") != string::npos;
+    shared_ptr<Command> firstCmd = smash->CreateCommand(parsed_cmd.substr(0, parsed_cmd.find(" |")).c_str());
+    shared_ptr<Command> secondCmd = smash->CreateCommand(parsed_cmd.substr(parsed_cmd.find(" |") + 3).c_str());
+
+    int pipefd[2];
+    if(pipe(pipefd) == -1){
+        perror("smash error: pipe failed");
+    }
+
+    int write_pipe = error ? 2 : 1;
+
+    pid_t firstChildPid, secondChildPid;
+
+    if ((firstChildPid = fork()) == 0){
+        dup2(pipefd[1], write_pipe);
+        close(pipefd[1]);
+        close(pipefd[0]);
+        firstCmd->execute(smash);
+        exit(0);
+    }
+
+    if ((secondChildPid = fork()) == 0){
+        dup2(pipefd[0], 0);
+        close(pipefd[0]);
+        close(pipefd[1]);
+        secondCmd->execute(smash);
+        exit(0);
+    }
+
+    close(pipefd[0]);
+    close(pipefd[1]);
+
+    waitpid(firstChildPid, nullptr, 0);
+    waitpid(secondChildPid, nullptr, 0);
+
+//    string firstCmd = parsed_cmd.substr(0, parsed_cmd.find(" |"));
+//    string secondCmd = parsed_cmd.substr(parsed_cmd.find(" |") + 3);
+//    int pipefd[2];
+//    if(pipe(pipefd) == -1){
+//        perror("smash error: pipe failed");
+//    }
+//
+//    //execute first command
+//    int write_pipe = error ? 2 : 1;
+//    int out = dup(write_pipe);
+//    dup2(pipefd[1], write_pipe);
+//    close(pipefd[1]);
+//    smash->executeCommand(firstCmd.c_str());
+//    dup2(out, write_pipe);
+//    close(out);
+//
+//    //execute second command
+//    int in = dup(0);
+//    dup2(pipefd[0], 0);
+//    close(pipefd[0]);
+//    smash->executeCommand(secondCmd.c_str());
+//    dup2(in, 0);
+//    close(in);
+}
+
+void ListDirCommand::execute(SmallShell *smash) {
+    if (argc > 2) {
+        cerr << "smash error: listdir: too many arguments" << endl;
+        return;
+    }
+
+    string path = ".";
+    if (argc == 2) {
+        path = argv[1];
+    }
+
+    DIR* dir = opendir(path.c_str());
+    if (dir == nullptr) {
+        perror("smash error: opendir failed");
+    return;
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        struct stat entry_stat;
+        string entry_path = path + "/" + entry->d_name;
+        if (lstat(entry_path.c_str(), &entry_stat) == -1) {
+            perror("smash error: lstat failed");
+            continue;
+        }
+
+        string type;
+        if (S_ISREG(entry_stat.st_mode)) {
+            type = "file";
+        } else if (S_ISDIR(entry_stat.st_mode)) {
+            type = "directory";
+        } else if (S_ISLNK(entry_stat.st_mode)) {
+            type = "link";
+        } else {//maybe remove
+            type = "other";
+        }
+
+        cout << type << ": " << entry->d_name;
+        if(type == "link"){
+            char link[PATH_MAX];
+            if (readlink(entry_path.c_str(), link, PATH_MAX) == -1) {
+                perror("smash error: readlink failed");
+            }
+            cout << " -> " << link;
+        }
+        cout << endl;
+    }
+
+    closedir(dir);
 }

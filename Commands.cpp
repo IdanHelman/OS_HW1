@@ -19,6 +19,11 @@
 
 using namespace std;
 
+//these are for handling ctrl_c and watch command
+sig_atomic_t stop_loop = 0;
+
+bool cameFromWatch = false;
+
 const std::string WHITESPACE = " \n\r\t\f\v";
 
 #if 0
@@ -44,6 +49,11 @@ string _rtrim(const std::string &s) {
 
 string _trim(const std::string &s) {
     return _rtrim(_ltrim(s));
+}
+
+bool isEmptyLine(const char* cmd_line){
+    string str(cmd_line);
+    return str.find_first_not_of(WHITESPACE) == string::npos;
 }
 
 int _parseCommandLine(const char *cmd_line, char **args) {
@@ -170,6 +180,11 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
     }
 
+    //check for watch
+    if(firstWord.compare("watch") == 0){
+        return std::make_shared<WatchCommand>(cmd_s, cmd_no_sign);
+    }
+
     //check for redirection or pipe
     else if(isRedirectionCommand(cmd_no_sign)){
         return std::make_shared<RedirectionCommand>(cmd_s, cmd_no_sign);
@@ -198,9 +213,8 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
         return std::make_shared<ListDirCommand>(cmd_s, cmd_no_sign);
     } else if (firstWord.compare("getuser") == 0){
        return std::make_shared<GetUserCommand>(cmd_s, cmd_no_sign);
-    } else if(firstWord.compare("watch") == 0){
-        return std::make_shared<WatchCommand>(cmd_s, cmd_no_sign);
-    } else {
+    }
+    else {
         return std::make_shared<ExternalCommand>(cmd_s, cmd_no_sign);
     }
 }
@@ -209,6 +223,9 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
 void SmallShell::executeCommand(const char *cmd_line) {
     // TODO: Add your implementation here
      jobs.removeFinishedJobs();
+     if(isEmptyLine(cmd_line)){
+        return;
+     }
      bool backGround = _isBackgroundCommand(cmd_line);
      std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
      backGround = backGround || _isBackgroundCommand(cmd->getPCmd().c_str());
@@ -226,7 +243,7 @@ void SmallShell::executeCommand(const char *cmd_line) {
          }
          else{ //parent
              if(backGround){
-                 jobs.addJob(cmd, f_pid, false);
+                jobs.addJob(cmd, f_pid, false);
              }
              else{
                  runningPid = f_pid;
@@ -241,10 +258,16 @@ void SmallShell::executeCommand(const char *cmd_line) {
              }
          }
      }
-
      //not external command - including redirection and pipe
      else{
-         cmd->execute(this);
+        WatchCommand* watchCmd = dynamic_cast<WatchCommand *>(cmd.get());
+        if(watchCmd != nullptr){
+            watchCmd->executeWatch(this, cmd);
+        }
+        else{
+            cmd->execute(this);
+        }
+        //cmd->execute(this);
     }
 }
 
@@ -569,6 +592,7 @@ void KillCommand::execute(SmallShell *smash){
 
     if(sig == SIGKILL){
         jobPtr->status = JobsList::JobStatus::Killed;
+        smash->getJobsList().removeJobById(jobId);
     }
     else if(sig == SIGCONT){
         jobPtr->status = JobsList::JobStatus::Running;
@@ -769,8 +793,12 @@ bool WatchCommand::isValidCommand(const string& command){
 }
 
 void WatchCommand::execute(SmallShell *smash){
-    if(argc < 2){
-        cerr << "smash error: watch: invalid arguments" << endl;
+    return;
+}
+
+void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
+    if(argc < 2){ //?
+        cerr << "smash error: watch: command not specified" << endl;
         return;
     }
     int secs = 2;
@@ -782,7 +810,7 @@ void WatchCommand::execute(SmallShell *smash){
         isDefault = true;
     }
     if(secs < 1){
-        cerr << "smash error: watch: invalid arguments" << endl;
+        cerr << "smash error: watch: invalid interval" << endl;
         return;
     }
     string choppedCmd;
@@ -794,7 +822,62 @@ void WatchCommand::execute(SmallShell *smash){
         size_t pos = cmd.find(argv[1]) + strlen(argv[1]);
         choppedCmd = cmd.substr(pos);
     }
-    Command* cmd = smash->CreateCommand(choppedCmd.c_str()).get();
+    if(choppedCmd == ""){
+        cerr << "smash error: watch: command not specified" << endl;
+        return;
+    }
+    bool backGround = _isBackgroundCommand(choppedCmd.c_str());
+    if(backGround == false){ //weird behavior for ctrl-c in the middle of the command
+        while(!stop_loop){
+            cameFromWatch = true;
+            smash->executeCommand(choppedCmd.c_str());
+            if(cameFromWatch == false){
+                return;
+            }
+            sleep(secs);
+        }
+    }
+    else{
+        choppedCmd.pop_back(); //removing & from the end of the command
+        pid_t f_pid = fork();
+        if (f_pid == -1){
+             perror("smash error: fork failed");
+        }
+        else if(f_pid == 0){ //child
+            int dev_null = open("/dev/null", O_WRONLY);
+            if(dev_null == -1){
+                perror("smash error: open failed");
+                exit(EXIT_FAILURE);
+            }
+            int stdout_copy = dup(STDOUT_FILENO);
+            if(stdout_copy == -1){
+                perror("smash error: dup failed");
+                exit(EXIT_FAILURE);
+            }
+
+            if(dup2(dev_null, STDOUT_FILENO) == -1){
+                perror("smash error: dup2 failed");
+                close(dev_null);
+                exit(EXIT_FAILURE);
+            }
+            
+            while(1){ //should this stop for some reason?
+                smash->executeCommand(choppedCmd.c_str());
+                sleep(secs);
+            }
+            //not getting here
+            if (dup2(stdout_copy, STDOUT_FILENO) == -1) {
+                perror("smash error: dup2 failed");
+                exit(EXIT_FAILURE);
+            }
+            close(dev_null);
+            close(stdout_copy);
+        }
+        else{ //parent - adding the watch command to jobs list
+            smash->getJobsList().addJob(tempPtr, f_pid, false);
+        }
+    }
+    stop_loop = 0;
 }
 
 

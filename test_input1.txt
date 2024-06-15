@@ -5,5 +5,5 @@ sleep 3
 sleep 2&
 chprompt
 sleep 2&
-sleep 2
+sleep 3
 quit kill

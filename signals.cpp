@@ -5,6 +5,10 @@
 
 using namespace std;
 
+extern sig_atomic_t stop_loop;
+
+extern bool cameFromWatch;
+
 void ctrlCHandler(int sig_num) {
     cout << "smash: got ctrl-C" << endl;
     int pid =  SmallShell::getInstance().getFgPid();
@@ -15,7 +19,9 @@ void ctrlCHandler(int sig_num) {
         SmallShell::getInstance().setFgPid(-1);
         cout << "smash: process " << pid << " was killed" << endl;
     }
-    else {
+    else if(cameFromWatch == false){ //this is for not getting smash> smash> during Watch
         cout << SmallShell::getInstance().getPrompt() << "> " << flush;
     }
+    stop_loop = 1;
+    cameFromWatch = false;
 }

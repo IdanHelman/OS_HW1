@@ -70,6 +70,8 @@ public:
 
    void execute(SmallShell *smash) override;
 
+   void executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr);
+
    static bool isValidCommand(const string& command);
 };
 

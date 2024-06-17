@@ -160,16 +160,17 @@ bool SmallShell::isRedirectionCommand(const string& cmd_line){
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
-std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line) {
+std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line, bool* isBackground) {
     // For example:
 
     char *cur_line = (char *) cmd_line;
     string cmd_s = (string(cur_line));
     string cmd_no_sign = _trim(cmd_s);
-    if (cmd_s.back() == '&') {
+    aliases.replaceAlias(cmd_no_sign);
+    *isBackground = *isBackground || _isBackgroundCommand(cmd_no_sign.c_str());
+    if (cmd_no_sign.back() == '&') {
         cmd_no_sign.pop_back();
     }
-    aliases.replaceAlias(cmd_no_sign);
 
     string firstWord = cmd_no_sign.substr(0, cmd_no_sign.find_first_of(" \n&"));
 
@@ -227,7 +228,7 @@ void SmallShell::executeCommand(const char *cmd_line) {
         return;
      }
      bool backGround = _isBackgroundCommand(cmd_line);
-     std::shared_ptr<Command> cmd = CreateCommand(cmd_line);
+     std::shared_ptr<Command> cmd = CreateCommand(cmd_line, &backGround);
      backGround = backGround || _isBackgroundCommand(cmd->getPCmd().c_str());
      bool isExternal = dynamic_cast<ExternalCommand *>(cmd.get()) != nullptr;
      if (isExternal){
@@ -271,19 +272,13 @@ void SmallShell::executeCommand(const char *cmd_line) {
     }
 }
 
-std::string removeSign(const std::string& str) {
-    if (!str.empty() && str[str.find_last_not_of(" \t\n\r\f\v")] == '&') {
-        return str.substr(0, str.find_last_of('&'));
 
-    }
-    return str;
-}
 
 Command::Command(const string& cmd_line, const string& cmd_no_sign){
     cmd = cmd_line;
     parsed_cmd = cmd_no_sign;
     argv = new char*[COMMAND_MAX_ARGS + 1];
-    argc = _parseCommandLine(removeSign(parsed_cmd).c_str(), argv);
+    argc = _parseCommandLine(parsed_cmd.c_str(), argv);
 }
 
 Command::~Command(){
@@ -628,6 +623,7 @@ void ForegroundCommand::execute(SmallShell *smash) {
     }
     else {
         cerr << "smash error: fg: invalid arguments" << endl;
+        return;
     }
     int ret = kill(jobPtr->pid, SIGCONT);
     if(ret == -1){
@@ -635,11 +631,14 @@ void ForegroundCommand::execute(SmallShell *smash) {
         return;
     }
     smash->getJobsList().removeJobById(jobPtr->jobId);
-    cout << jobPtr->commandPtr->getCmd() << jobPtr->pid << endl;
+    cout << jobPtr->commandPtr->getCmd() << " " << jobPtr->pid << endl;
     int wstatus;
+    smash->setFgPid(jobPtr->pid);
     if(waitpid(jobPtr->pid, &wstatus, 0) == -1){
+        smash->setFgPid(-1);
         perror("smash error: waitpid failed");
     }
+    smash->setFgPid(-1);
 }
 
 void ChangeDirCommand::execute(SmallShell *smash) {

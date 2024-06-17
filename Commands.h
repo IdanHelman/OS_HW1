@@ -271,12 +271,18 @@ public:
 };
 
 class aliasCommand : public BuiltInCommand {
+    bool background;
 public:
+
     aliasCommand(const string& cmd_line, const string& cmd_no_sign): BuiltInCommand(cmd_line, cmd_no_sign) {}
 
     virtual ~aliasCommand() {}
 
     void execute(SmallShell *smash) override;
+
+    bool isBackground() const{
+        return background;
+    }
 };
 
 class unaliasCommand : public BuiltInCommand {
@@ -322,7 +328,7 @@ private:
     AliasesTable aliases;
 
 public:
-    std::shared_ptr<Command> CreateCommand(const char *cmd_line);
+    std::shared_ptr<Command> CreateCommand(const char *cmd_line, bool* isBackground = nullptr);
     string getPrompt() const;
     JobsList& getJobsList();
     int getPid() const;

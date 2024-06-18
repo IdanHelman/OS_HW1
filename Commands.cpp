@@ -758,8 +758,35 @@ void RedirectionCommand::execute(SmallShell *smash) {
         perror("smash error: open failed");
         return;
     }
+
+    pid_t f_pid = fork();
+    if (f_pid == -1){
+        perror("smash error: fork failed");
+    }
+    else if (f_pid == 0){ //child
+        if(setpgrp() == -1){
+            perror("smash error: setpgrp failed");
+        }
+        //changing output to fd
+        close(STDOUT_FILENO);
+        int dupRet = dup(fd);
+
+        if(dupRet == -1){
+            perror("smash error: dup2 failed");
+            close(fd);
+            exit(1);
+        }
+
+        //executing the command
+        string choppedCmd = getChoppedCommand();
+        smash->executeCommand(choppedCmd.c_str());
+        exit(1);
+    }
+    else{ //parent
+        waitpid(f_pid, nullptr, 0); //waiting for child to finish
+    }
     //changing output to fd
-    int stdout = dup(STDOUT_FILENO);
+    /*int stdout = dup(STDOUT_FILENO);
     //close(STDOUT_FILENO);
 
     //dup(fd);
@@ -780,7 +807,7 @@ void RedirectionCommand::execute(SmallShell *smash) {
         perror("smash error: dup2 failed");
         close(fd);
         return;
-    }
+    }*/
     close(fd);
 }
 

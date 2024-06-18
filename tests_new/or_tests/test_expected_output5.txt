@@ -1,0 +1,15 @@
+smash> smash: got an alarm
+smash: timeout 1 sleep 1 timed out!
+smash> smash: got an alarm
+smash: timeout 1 sleep 2 timed out!
+smash> smash: got an alarm
+smash: timeout 2 sleep 2 timed out!
+smash> smash> smash> smash> smash> sleep: invalid time interval ‘v’
+Try 'sleep --help' for more information.
+smash> smash: got an alarm
+smash: got an alarm
+smash: timeout 2 sleep 2 timed out!
+smash> smash: got an alarm
+smash: timeout 4 sleep 5 & timed out!
+smash: timeout 2 sleep 2 timed out!
+smash> Segmentation fault (core dumped)

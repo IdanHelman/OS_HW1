@@ -1,0 +1,28 @@
+smash> submitted by idan and uria
+smash> smash> dir1
+echo_stderr.sh
+empty_file.txt
+my_sleep
+print_args_test.exe
+printSignals.exe
+redirect
+tail.file
+tail_new_line.file
+tail_test.txt
+timeout
+touch.file
+smash> smash> ll='ls'
+s100='sleep 100 '
+smash> smash> smash> smash> s='sleep'
+s100='sleep 100 '
+smash> smash> smash> smash> smash> smash> smash> l1='pwd'
+l2='pwd'
+l3='pwd'
+ll='ls'
+s='sleep'
+s100='sleep 100 '
+smash> smash> l3='pwd'
+ll='ls'
+s='sleep'
+s100='sleep 100 '
+smash> 

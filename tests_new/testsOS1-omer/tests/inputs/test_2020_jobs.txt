@@ -1,0 +1,120 @@
+sleep 100&
+sleep 200&
+sleep 300&
+sleep 400&
+sleep 500&
+sleep 600&
+sleep 700&
+jobs
+sleep 800&
+sleep 900&
+jobs
+kill -9 3
+^C
+jobs
+sleep 1000&
+jobs
+kill -9 10
+^C
+jobs
+sleep 1001&
+jobs
+fg
+^C
+jobs
+fg
+^C
+jobs
+fg
+^C
+jobs
+fg
+^C
+jobs
+^C
+jobs
+sleep 1002
+^C
+^C
+jobs
+bg
+jobs
+sleep 3
+^C
+sleep 3
+^C
+^C
+^C
+^C
+^C
+jobs
+sleep 1100
+^C
+sleep 1200
+^C
+sleep 1200
+^C
+fg 12
+^C
+fg 12
+^C
+fg 12
+^C
+jobs
+fg 11
+^C
+fg 11
+^C
+fg 20
+fg 21
+fg -2
+jobs
+bg 12
+bg 20
+bg -1
+jobs
+bg 7
+bg 8
+jobs
+kill -9 1
+^C
+kill -9 1
+^C
+jobs
+kill -9 2
+kill -9 4
+^C
+fg 4
+bg 2
+fg 1
+jobs
+sleep 3&
+jobs
+^C
+jobs
+jobs
+jobs
+^C0
+jobs
+fg 
+^C
+jobs
+fg 
+^C
+jobs
+fg 
+^C
+jobs
+sleep 777&
+jobs
+sleep 888
+^C
+sleep 888
+^C
+bg
+jobs
+sleep 100&
+jobs
+fg
+^C
+quit kill

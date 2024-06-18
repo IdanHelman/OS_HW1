@@ -1,0 +1,19 @@
+echo submitted by idan and uria
+alias ll='ls'
+ll
+alias s100='sleep 100 '
+alias
+alias s='sleep'
+s 3
+unalias ll
+alias
+alias ll='ls'
+alias ll='pwd'
+unalias
+alias l1='pwd'
+alias l2='pwd'
+alias l3='pwd'
+alias
+unalias l1 l2 l4 l3
+alias
+quit

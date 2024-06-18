@@ -1,0 +1,95 @@
+smash> smash> [1] sleep 3& : 3375 0 secs
+smash> smash> smash> [1] sleep 3& : 3375 0 secs
+[2] sleep 2 & : 3376 0 secs
+[3] sleep 2   & : 3377 0 secs
+smash> smash> [1] sleep 3& : 3375 1 secs
+[2] sleep 2 & : 3376 1 secs
+[3] sleep 2   & : 3377 1 secs
+smash> smash> [1] sleep 3& : 3375 1 secs
+[2] sleep 2 & : 3376 1 secs
+[3] sleep 2   & : 3377 1 secs
+[4] sleep 2& : 3379 0 secs
+smash> smash> smash> smash> smash> smash> smash> smash> smash> [1] sleep 1& : 3381 0 secs
+[2] sleep 1& : 3382 0 secs
+[3] sleep 1& : 3383 0 secs
+[4] sleep 1& : 3384 0 secs
+smash> signal number 9 was sent to pid 3383
+smash> [1] sleep 1& : 3381 0 secs
+[2] sleep 1& : 3382 0 secs
+[4] sleep 1& : 3384 0 secs
+smash> smash error: kill: job-id 6 does not exist
+smash> signal number 9 was sent to pid 3384
+smash> signal number 9 was sent to pid 3381
+smash> smash error: kill: job-id 1 does not exist
+smash> smash error: bg: job-id 1 does not exist
+smash> bgAndCtrl_test.txt
+cmake-build-debug
+CMakeLists.txt
+Commands.cpp
+Commands.h
+Commands.o
+Makefile
+pwd.txt
+README.txt
+signals.cpp
+signals.h
+signals.o
+smash
+smash.cpp
+smash.o
+submitters.txt
+test_expected_output1.txt
+test_expected_output2.txt
+test_expected_output3.txt
+test_expected_output4.txt
+test_expected_output5.txt
+test_expected_output6.txt
+test_input1.txt
+testInput2Comments.txt
+test_input2.txt
+test_input3.txt
+test_input4.txt
+test_input5.txt
+test_output1.txt
+test_output2.txt
+test_output3.txt
+test_output4.txt
+test_output5.txt
+smash> smash> bgAndCtrl_test.txt
+cmake-build-debug
+CMakeLists.txt
+Commands.cpp
+Commands.h
+Commands.o
+Makefile
+pwd.txt
+README.txt
+signals.cpp
+signals.h
+signals.o
+smash
+smash.cpp
+smash.o
+submitters.txt
+test_expected_output1.txt
+test_expected_output2.txt
+test_expected_output3.txt
+test_expected_output4.txt
+test_expected_output5.txt
+test_expected_output6.txt
+test_input1.txt
+testInput2Comments.txt
+test_input2.txt
+test_input3.txt
+test_input4.txt
+test_input5.txt
+test_output1.txt
+test_output2.txt
+test_output3.txt
+test_output4.txt
+test_output5.txt
+find: ‘?.h’: No such file or directory
+smash> Commands.h
+signals.h
+smash> smash: sending SIGKILL signal to 1 jobs:
+3382: sleep 1&

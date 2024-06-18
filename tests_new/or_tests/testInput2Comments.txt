@@ -1,0 +1,38 @@
+chprompt
+chprompt hi
+chprompt
+chprompt hi hello
+chprompt 2
+chprompt 2 hi
+chprompt 2 hi hello
+chprompt fjfdkbdfkjvb
+chprompt
+#--------------------------------------
+showpid
+showpid vfdnvk
+showpid 2343
+showpid ffd fgvjdfgn
+#--------------------------------------
+pwd
+pwd 234
+pwd 234 234
+pwd /mnt/hgfs/files_for_OP/OP_HW1/wet/
+#--------------------------------------
+cd #todo error??????????pwd
+pwd #todo == curr dir
+cd - #todo error
+pwd #todo == curr dir
+cd /mnt/hgfs/files_for_OP/OP_HW1/wet/ #todo maybe needs to be changed in vm
+cd pwd #todo == /mnt/hgfs/files_for_OP/OP_HW1/wet/
+cd /mnt/hgfs/files_for_OP/OP_HW1/wet/skeleton_smash/ fgdfgd #todo error
+pwd #todo == /mnt/hgfs/files_for_OP/OP_HW1/wet/
+cd vfdvndkjgrbgfb #todo error
+pwd #todo == /mnt/hgfs/files_for_OP/OP_HW1/wet/
+cd ..
+cd pwd #todo == /mnt/hgfs/files_for_OP/OP_HW1/
+cd ~
+cd pwd s /home/ ??????
+cd -
+cd pwd #todo == /mnt/hgfs/files_for_OP/OP_HW1/
+cd -
+cd pwd #todo /home ?????

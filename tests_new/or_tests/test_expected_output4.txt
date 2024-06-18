@@ -1,0 +1,81 @@
+smash> smash> smash pid is 3286
+smash> smash> smash pid is 3286
+smash pid is 3286
+smash> smash> bgAndCtrl_test.txt
+cmake-build-debug
+CMakeLists.txt
+Commands.cpp
+Commands.h
+Commands.o
+ls.txt
+Makefile
+pid.txt
+pwd.txt
+README.txt
+signals.cpp
+signals.h
+signals.o
+smash
+smash.cpp
+smash.o
+submitters.txt
+test_expected_output1.txt
+test_expected_output2.txt
+test_expected_output3.txt
+test_expected_output4.txt
+test_expected_output5.txt
+test_expected_output6.txt
+test_input1.txt
+testInput2Comments.txt
+test_input2.txt
+test_input3.txt
+test_input4.txt
+test_input5.txt
+test_output1.txt
+test_output2.txt
+test_output3.txt
+test_output4.txt
+test_output5.txt
+smash> smash> ls: cannot access '<': No such file or directory
+ls: cannot access '#error': No such file or directory
+ls.txt
+smash> smash pid is 3286
+smash pid is 3286
+smash> smash pid is 3286
+smash> total 612
+-rwxrwxrwx 1 root root    125 Apr 21 19:08 bgAndCtrl_test.txt
+drwxrwxrwx 1 root root   4096 Apr 11 10:59 cmake-build-debug
+-rwxrwxrwx 1 root root    160 Apr 24 06:50 CMakeLists.txt
+-rwxrwxrwx 1 root root  44008 Apr 24 20:40 Commands.cpp
+-rwxrwxrwx 1 root root   8763 Apr 24 15:45 Commands.h
+-rwxrwxrwx 1 root root 358072 Apr 24 20:40 Commands.o
+-rwxrwxrwx 1 root root      0 Apr 24 20:40 ls.txt
+-rwxrwxrwx 1 root root    917 Apr 21 19:08 Makefile
+-rwxrwxrwx 1 root root     36 Apr 24 20:40 pid.txt
+-rwxrwxrwx 1 root root     36 Apr 24 18:14 pwd.txt
+-rwxrwxrwx 1 root root   3131 Apr 24 06:50 README.txt
+-rwxrwxrwx 1 root root    636 Apr 24 07:27 signals.cpp
+-rwxrwxrwx 1 root root    185 Apr 10 16:46 signals.h
+-rwxrwxrwx 1 root root   6216 Apr 24 20:29 signals.o
+-rwxrwxrwx 1 root root 171368 Apr 24 20:40 smash
+-rwxrwxrwx 1 root root   1240 Apr 24 06:50 smash.cpp
+-rwxrwxrwx 1 root root   6944 Apr 24 20:29 smash.o
+-rwxrwxrwx 1 root root      0 Apr 24 06:50 submitters.txt
+-rwxrwxrwx 1 root root    104 Apr 24 18:27 test_expected_output1.txt
+-rwxrwxrwx 1 root root   1147 Apr 24 18:27 test_expected_output2.txt
+-rwxrwxrwx 1 root root    171 Apr 24 18:30 test_expected_output3.txt
+-rwxrwxrwx 1 root root   2805 Apr 24 18:30 test_expected_output4.txt
+-rwxrwxrwx 1 root root      0 Apr 21 19:08 test_expected_output5.txt
+-rwxrwxrwx 1 root root      0 Apr 21 19:08 test_expected_output6.txt
+-rwxrwxrwx 1 root root     93 Apr 24 20:06 test_input1.txt
+-rwxrwxrwx 1 root root    977 Apr 19 18:16 testInput2Comments.txt
+-rwxrwxrwx 1 root root    500 Apr 24 18:25 test_input2.txt
+-rwxrwxrwx 1 root root    254 Apr 24 20:35 test_input3.txt
+-rwxrwxrwx 1 root root    232 Apr 24 18:24 test_input4.txt
+-rwxrwxrwx 1 root root    364 Apr 21 19:08 test_input5.txt
+-rwxrwxrwx 1 root root    104 Apr 24 20:40 test_output1.txt
+-rwxrwxrwx 1 root root   1147 Apr 24 20:39 test_output2.txt
+-rwxrwxrwx 1 root root   2389 Apr 24 20:39 test_output3.txt
+-rwxrwxrwx 1 root root    648 Apr 24 20:40 test_output4.txt
+-rwxrwxrwx 1 root root    650 Apr 24 20:39 test_output5.txt
+smash> smash> smash> smash: sending SIGKILL signal to 0 jobs:

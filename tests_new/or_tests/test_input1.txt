@@ -1,0 +1,9 @@
+sleep 1
+chprompt hello
+sleep 1
+sleep 1
+sleep 2&
+chprompt
+sleep 1&
+sleep 1
+quit kill

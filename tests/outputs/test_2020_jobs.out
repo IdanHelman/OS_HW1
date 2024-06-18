@@ -1,0 +1,194 @@
+smash> smash> smash> smash> smash> smash> smash> smash> [1] sleep 100&
+[2] sleep 200&
+[3] sleep 300&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+smash> smash> smash> [1] sleep 100&
+[2] sleep 200&
+[3] sleep 300&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+[8] sleep 800&
+[9] sleep 900&
+smash> signal number 9 was sent to pid 12443
+smash> smash: got ctrl-C
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+[8] sleep 800&
+[9] sleep 900&
+smash> smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+[8] sleep 800&
+[9] sleep 900&
+[10] sleep 1000&
+smash> signal number 9 was sent to pid 12466
+smash> smash: got ctrl-C
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+[8] sleep 800&
+[9] sleep 900&
+smash> smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+[8] sleep 800&
+[9] sleep 900&
+[10] sleep 1001&
+smash> sleep 1001& 12494
+smash: got ctrl-C
+smash: process 12494 was killed
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+[8] sleep 800&
+[9] sleep 900&
+smash> sleep 900& 12449
+smash: got ctrl-C
+smash: process 12449 was killed
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+[8] sleep 800&
+smash> sleep 800& 12448
+smash: got ctrl-C
+smash: process 12448 was killed
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+[7] sleep 700&
+smash> sleep 700& 12447
+smash: got ctrl-C
+smash: process 12447 was killed
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> smash: got ctrl-C
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> smash: got ctrl-C
+smash: process 12654 was killed
+smash> smash: got ctrl-C
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> smash: got ctrl-C
+smash: process 12713 was killed
+smash> smash: got ctrl-C
+smash: process 12734 was killed
+smash> smash: got ctrl-C
+smash> smash: got ctrl-C
+smash> smash: got ctrl-C
+smash> smash: got ctrl-C
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> smash: got ctrl-C
+smash: process 12814 was killed
+smash> smash: got ctrl-C
+smash: process 12832 was killed
+smash> smash: got ctrl-C
+smash: process 12853 was killed
+smash> smash> smash: got ctrl-C
+smash> smash> smash: got ctrl-C
+smash> smash> smash: got ctrl-C
+smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> smash> smash: got ctrl-C
+smash> smash> smash: got ctrl-C
+smash> smash> smash> smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> smash> smash> smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> smash> smash> [1] sleep 100&
+[2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> signal number 9 was sent to pid 12441
+smash> smash: got ctrl-C
+smash> smash> smash: got ctrl-C
+smash> [2] sleep 200&
+[4] sleep 400&
+[5] sleep 500&
+[6] sleep 600&
+smash> signal number 9 was sent to pid 12442
+smash> signal number 9 was sent to pid 12444
+smash> smash: got ctrl-C
+smash> smash> smash> smash> [5] sleep 500&
+[6] sleep 600&
+smash> smash> [5] sleep 500&
+[6] sleep 600&
+[7] sleep 3&
+smash> smash: got ctrl-C
+smash> [5] sleep 500&
+[6] sleep 600&
+[7] sleep 3&
+smash> [5] sleep 500&
+[6] sleep 600&
+[7] sleep 3&
+smash> [5] sleep 500&
+[6] sleep 600&
+[7] sleep 3&
+smash> smash: got ctrl-C
+smash> [5] sleep 500&
+[6] sleep 600&
+[7] sleep 3&
+smash> sleep 3& 13028
+smash: got ctrl-C
+smash: process 13028 was killed
+smash> [5] sleep 500&
+[6] sleep 600&
+smash> sleep 600& 12446
+smash: got ctrl-C
+smash: process 12446 was killed
+smash> [5] sleep 500&
+smash> sleep 500& 12445

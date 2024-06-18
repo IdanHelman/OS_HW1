@@ -1,0 +1,30 @@
+sleep 3&
+jobs
+sleep 2 &
+sleep 2   &
+jobs
+sleep 1
+jobs
+sleep 2&
+jobs
+fg 4
+sleep 1&
+fg
+jobs
+sleep 1&
+sleep 1&
+sleep 1&
+sleep 1&
+jobs
+kill -9 3
+jobs
+kill -9 6
+kill -9 4
+kill -9 1
+kill -9 1
+bg 1
+ls
+ls&
+find ?.h
+find *.h
+quit kill

@@ -1,0 +1,29 @@
+timeout 1 sleep 1
+timeout 1 sleep 2
+timeout 2 sleep 2
+timeout 3 sleep 2
+timeout 4 sleep 5 &
+timeout 6 sleep 5 &
+timeout 6 sleep 6 &
+timeout 7 sleep 6 v
+timeout 2 sleep 2
+timeout 2 sleep 2
+sleep 2&
+sleep 2^
+sleep 2&
+jobs
+kill -19 2
+jobs
+sleep 2
+jobs
+bg
+sleep 2&
+sleep 2&
+jobs
+kill -19 1
+bg
+bg 1
+kill -9 1
+sleep 1&
+kill -100 1
+quit kill

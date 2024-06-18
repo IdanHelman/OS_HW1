@@ -1,0 +1,23 @@
+sleep 10
+ctrZ
+
+jodfg
+jobs
+
+sleep 30&
+
+jobs
+
+bg
+jobs
+
+sleep 20
+ctrZ
+jobs
+bg 1
+jobs
+
+ctrC
+jobs
+
+quit kill

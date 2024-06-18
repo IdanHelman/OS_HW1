@@ -1,0 +1,6 @@
+Sleep 100&
+Sleep 200&
+fg
+^Z
+jobs
+quit kill

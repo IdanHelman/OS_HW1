@@ -1,0 +1,31 @@
+smash> smash> hi> smash> hi> 2> 2> 2> fjfdkbdfkjvb> smash> smash pid is 2700
+smash> smash pid is 2700
+smash> smash pid is 2700
+smash> smash pid is 2700
+smash> /mnt/hgfs/OP_HW1/wet/skeleton_smash
+smash> /mnt/hgfs/OP_HW1/wet/skeleton_smash
+smash> /mnt/hgfs/OP_HW1/wet/skeleton_smash
+smash> /mnt/hgfs/OP_HW1/wet/skeleton_smash
+smash> smash error: cd failed
+smash> /mnt/hgfs/OP_HW1/wet/skeleton_smash
+smash> smash error: cd: OLDPWD not set
+smash> /mnt/hgfs/OP_HW1/wet/skeleton_smash
+smash> smash error: chdir failed
+: No such file or directory
+smash> smash error: chdir failed
+: No such file or directory
+smash> smash error: cd: too many arguments
+smash> /mnt/hgfs/OP_HW1/wet/skeleton_smash
+smash> smash error: chdir failed
+: No such file or directory
+smash> /mnt/hgfs/OP_HW1/wet/skeleton_smash
+smash> smash> smash error: chdir failed
+: No such file or directory
+smash> smash error: chdir failed
+: No such file or directory
+smash> smash error: cd: too many arguments
+smash> smash> smash error: chdir failed
+: No such file or directory
+smash> smash> smash error: chdir failed
+: No such file or directory
+smash> smash: sending SIGKILL signal to 0 jobs:

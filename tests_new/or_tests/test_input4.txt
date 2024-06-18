@@ -1,0 +1,14 @@
+showpid > pid.txt
+cat pid.txt
+showpid >> pid.txt
+cat pid.txt
+ls > ls.txt
+cat ls.txt
+ls -l > ls.txt
+ls < ls.txt   #error
+cat pid.txt | grep smash
+showpid | grep smash
+cat ls.txt |& grep 1
+rm pid.txt
+rm ls.txt
+quit kill

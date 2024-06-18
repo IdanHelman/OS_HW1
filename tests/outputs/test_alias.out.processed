@@ -3,8 +3,8 @@ smash> smash> dir1
 echo_stderr.sh
 empty_file.txt
 my_sleep
-print_args_test.exe
 printSignals.exe
+print_args_test.exe
 redirect
 tail.file
 tail_new_line.file

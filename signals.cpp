@@ -20,7 +20,7 @@ void ctrlCHandler(int sig_num) {
         cout << "smash: process " << pid << " was killed" << endl;
     }
     else if(cameFromWatch == false){ //this is for not getting smash> smash> during Watch
-        cout << SmallShell::getInstance().getPrompt() << "> " << flush;
+    //    cout << SmallShell::getInstance().getPrompt() << "> " << flush;
     }
     stop_loop = 1;
     cameFromWatch = false;

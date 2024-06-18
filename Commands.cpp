@@ -551,13 +551,12 @@ int KillCommand::sigEditor(char* sig){
 }
 
 void KillCommand::execute(SmallShell *smash){
-    if(argc != 3){
+    if(argc < 3){
         cerr << "smash error: kill: invalid arguments" << endl;
         return;
     }
     int sig, jobId;
     try{
-        sig = sigEditor(argv[1]);
         jobId = stoi(argv[2]);
     }
     catch(...){
@@ -571,9 +570,19 @@ void KillCommand::execute(SmallShell *smash){
         cerr << "smash error: kill: job-id " << jobId << " does not exist" << endl;
         return;
     }
-
-    if(!((1 <= sig) && (sig <= 31))){
-        cerr << "smash error: kill: job-id " << jobId << " does not exist" << endl;
+    try{
+        sig = sigEditor(argv[1]);
+    }
+    catch(...){
+        cerr << "smash error: kill: invalid arguments" << endl;
+        return;
+    }
+//    if(!((1 <= sig) && (sig <= 31))){
+//        cerr << "smash error: kill: invalid arguments" << endl;
+//        return;
+//    }
+    if(argc > 3){
+        cerr << "smash error: kill: invalid arguments" << endl;
         return;
     }
 
@@ -599,7 +608,7 @@ void KillCommand::execute(SmallShell *smash){
 
 void ForegroundCommand::execute(SmallShell *smash) {
     shared_ptr<JobsList::JobEntry> jobPtr = nullptr;
-    if(argc == 2){
+    if(argc >= 2){
         int jobId;
         try{
             jobId = stoi(argv[1]);
@@ -611,6 +620,10 @@ void ForegroundCommand::execute(SmallShell *smash) {
         jobPtr = smash->getJobsList().getJobById(jobId);
         if(jobPtr == nullptr){
             cerr << "smash error: fg: job-id " << jobId << " does not exist" << endl;
+            return;
+        }
+        if(argc > 2){
+            cerr << "smash error: fg: invalid arguments" << endl;
             return;
         }
     }
@@ -1034,8 +1047,9 @@ void GetUserCommand::execute(SmallShell *smash) {
 
 void PipeCommand::execute(SmallShell *smash) {
     bool error = parsed_cmd.find(" |& ") != string::npos;
-    shared_ptr<Command> firstCmd = smash->CreateCommand(parsed_cmd.substr(0, parsed_cmd.find(" |")).c_str());
-    shared_ptr<Command> secondCmd = smash->CreateCommand(parsed_cmd.substr(parsed_cmd.find(" |") + 3).c_str());
+    bool isBackground = false;
+    shared_ptr<Command> firstCmd = smash->CreateCommand(parsed_cmd.substr(0, parsed_cmd.find(" |")).c_str(), &isBackground);
+    shared_ptr<Command> secondCmd = smash->CreateCommand(parsed_cmd.substr(parsed_cmd.find(" |") + 3).c_str(), &isBackground);
 
     int pipefd[2];
     if(pipe(pipefd) == -1){
@@ -1053,13 +1067,20 @@ void PipeCommand::execute(SmallShell *smash) {
         firstCmd->execute(smash);
         exit(0);
     }
-
+    if(firstChildPid == -1){
+        perror("smash error: fork failed");
+        exit(1);
+    }
     if ((secondChildPid = fork()) == 0){
         dup2(pipefd[0], 0);
         close(pipefd[0]);
         close(pipefd[1]);
         secondCmd->execute(smash);
         exit(0);
+    }
+    if(secondChildPid == -1){
+        perror("smash error: fork failed");
+        exit(1);
     }
 
     close(pipefd[0]);

@@ -328,7 +328,7 @@ private:
     AliasesTable aliases;
 
 public:
-    std::shared_ptr<Command> CreateCommand(const char *cmd_line, bool* isBackground = nullptr);
+    std::shared_ptr<Command> CreateCommand(const char *cmd_line, bool* isBackground);
     string getPrompt() const;
     JobsList& getJobsList();
     int getPid() const;

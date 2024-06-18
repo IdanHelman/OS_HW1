@@ -1,0 +1,41 @@
+smash> submitted by idan and uria
+smash> smash> total 4148
+-rw-rw-r-- 1 student student       0 Jun 18 06:49 alias_err.out
+-rw-rw-r-- 1 student student      48 Jun 18 06:49 alias.out
+-rw-rw-r-- 1 student student     155 Jun 18 04:58 CMakeLists.txt
+-rw-rw-r-- 1 student student   33819 Jun 18 05:42 Commands.cpp
+-rw-rw-r-- 1 student student    9246 Jun 18 04:48 Commands.h
+-rw-rw-r-- 1 student student 2362712 Jun 18 05:08 Commands.o
+-rw-rw-r-- 1 student student       0 Jun 18 05:12 hi.txt
+-rw-rw-r-- 1 student student    3385 Jun 18 04:58 instructions.txt
+-rw-rw-r-- 1 student student     233 Jun 18 05:09 ls.txt
+-rw-rw-r-- 1 student student     917 Jun 18 04:48 Makefile
+-rw-rw-r-- 1 student student      18 Jun 18 04:58 pid.txt
+-rw-rw-r-- 1 student student      64 Jun 18 05:09 pwd.txt
+-rw-rw-r-- 1 student student    3057 Jun 18 04:58 README.txt
+-rw-rw-r-- 1 student student     775 Jun 18 04:48 signals.cpp
+-rw-rw-r-- 1 student student     119 Jun 18 04:48 signals.h
+-rw-rw-r-- 1 student student  175544 Jun 18 04:48 signals.o
+-rwxrwxr-x 1 student student 1331696 Jun 18 05:08 smash
+-rw-rw-r-- 1 student student     693 Jun 18 04:48 smash.cpp
+-rw-rw-r-- 1 student student  190160 Jun 18 04:48 smash.o
+-rw-rw-r-- 1 student student     104 Jun 18 04:58 test_expected_output1.txt
+-rw-rw-r-- 1 student student      84 Jun 18 04:58 test_input1.txt
+-rwxrw-r-- 1 student student     104 Jun 18 05:09 test_output1.txt
+drwxrwxr-x 7 student student    4096 Jun 18 05:22 tests
+-rw-rw-r-- 1 student student   68376 Jun 18 04:48 tests.zip
+smash> smash> ll='ls -l'
+s100='sleep 100 '
+smash> smash> smash> smash> s='sleep'
+s100='sleep 100 '
+smash> smash> smash> smash> smash> smash> smash> l1='pwd'
+l2='pwd'
+l3='pwd'
+ll='ls -l'
+s='sleep'
+s100='sleep 100 '
+smash> smash> l3='pwd'
+ll='ls -l'
+s='sleep'
+s100='sleep 100 '
+smash> 

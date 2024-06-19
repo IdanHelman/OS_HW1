@@ -15,6 +15,7 @@
 #include <regex>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 
 
 using namespace std;
@@ -425,8 +426,8 @@ shared_ptr<JobsList::JobEntry> JobsList::getLastStoppedJob(int *jobId){
 }
 
 void AliasesTable::printAliases(){
-    for(auto alias : aliases){
-        cout << alias.first << "=" << "'" << alias.second << "'" << endl;
+    for(auto alias : insertedAliases){
+        cout << alias << "=" << "'" << aliases[alias] << "'" << endl;
     }
 }
 
@@ -465,6 +466,7 @@ void AliasesTable::addAlias(const string &cmd){
     }
     else {
         aliases[key] = value;
+        insertedAliases.push_back(key);
     }
 }
 
@@ -474,6 +476,8 @@ bool AliasesTable::removeAlias(const string &alias){
     }
     else{
         aliases.erase(alias);
+        auto it = find(insertedAliases.begin(), insertedAliases.end(), alias);
+        insertedAliases.erase(it);
         return true;
     }
 }
@@ -659,6 +663,7 @@ void ChangeDirCommand::execute(SmallShell *smash) {
         cerr << "smash error: cd: too many arguments" << endl;
     }
     else if(argc == 1){
+        smash->setLastPwd(smash->getPwd());
         return;
     }
     else if (strcmp(argv[1], "-") == 0){
@@ -1119,56 +1124,54 @@ void ListDirCommand::execute(SmallShell *smash) {
         cerr << "smash error: listdir: too many arguments" << endl;
         return;
     }
+    struct linux_dirent {
+        unsigned long  d_ino;     /* Inode number */
+        unsigned long  d_off;     /* Offset to next linux_dirent */
+        unsigned short d_reclen;  /* Length of this linux_dirent */
+        char           d_name[];  /* Filename (null-terminated) */
+    };
 
     string path = ".";
     if (argc == 2) {
         path = argv[1];
     }
 
-    DIR* dir = opendir(path.c_str());
-    if (dir == nullptr) {
-        perror("smash error: opendir failed");
-    return;
+    int dir_fd = open(path.c_str(), O_RDONLY | O_DIRECTORY);
+    if (dir_fd == -1) {
+        perror("smash error: open failed");
+        return;
     }
 
-    struct dirent* entry;
     vector<string> files;
     map<string, string> others;
-    while ((entry = readdir(dir)) != nullptr) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
 
-        struct stat entry_stat;
-        string entry_path = path + "/" + entry->d_name;
-        if (lstat(entry_path.c_str(), &entry_stat) == -1) {
-            perror("smash error: lstat failed");
-            continue;
-        }
+    char buf[1024];  // Buffer for directory entries
+    int nread;
+    char entry_stat;
+    int bpos;
+    struct linux_dirent* entry;
 
-        string type;
-        if (S_ISREG(entry_stat.st_mode)) {
-            files.push_back(entry->d_name);
-        } else if (S_ISDIR(entry_stat.st_mode)) {
-            others[entry->d_name] = "directory";
-        } else if (S_ISLNK(entry_stat.st_mode)) {
-            char link[PATH_MAX];
-            if (readlink(entry_path.c_str(), link, PATH_MAX) == -1) {
-                perror("smash error: readlink failed");
+    while ((nread = syscall(SYS_getdents, dir_fd, buf, 1024)) > 0) {
+        for (bpos = 0; bpos < nread;) {
+            entry = (struct linux_dirent*)(buf + bpos);
+            string entry_name = entry->d_name;
+
+            // Ignore "." and ".." and hidden files entries
+            if (entry_name == "." || entry_name == ".."|| entry_name[0] == '.') {
+                bpos += entry->d_reclen;
+                continue;
             }
-            string key = string(entry->d_name) + " -> " + link;
-            others[key] = "link";
-        } else if (S_ISCHR(entry_stat.st_mode)) {
-            others[entry->d_name] = "char dev";
-        } else if (S_ISBLK(entry_stat.st_mode)) {
-            others[entry->d_name] = "block dev";
-        } else if (S_ISFIFO(entry_stat.st_mode)) {
-            others[entry->d_name] = "fifo";
-        } else if (S_ISSOCK(entry_stat.st_mode)) {
-            others[entry->d_name] = "socket";
-        } else {
-            others[entry->d_name] = "other";
+            entry_stat = *(buf + bpos + entry->d_reclen - 1);
+            if (DT_REG == entry_stat) {
+                files.push_back(entry->d_name);
+            } else if (DT_DIR == entry_stat) {
+                others[entry->d_name] = "directory";
+            }
+            bpos += entry->d_reclen;
         }
+    }
+    if (nread == -1) {
+        perror("smash error: getdents failed");
     }
 
     sort(files.begin(), files.end());
@@ -1178,7 +1181,6 @@ void ListDirCommand::execute(SmallShell *smash) {
     for (const auto& other : others) {
         cout << other.second << ": " << other.first << endl;
     }
-
-    closedir(dir);
+    close(dir_fd);
 }
 

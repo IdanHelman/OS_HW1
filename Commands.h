@@ -297,7 +297,7 @@ public:
 class AliasesTable {
     map<string, string> aliases;
 
-  //  vector<string> reservedWords;
+    vector<string> insertedAliases;
 
     bool validFormat(const string& cmd);
 public:

@@ -5,7 +5,7 @@
 #include "Commands.h"
 #include "signals.h"
 
-extern sig_atomic_t stop_loop;
+//extern sig_atomic_t stop_loop;
 
 int main(int argc, char *argv[]) {
     if (signal(SIGINT, ctrlCHandler) == SIG_ERR) {

@@ -328,6 +328,8 @@ private:
     AliasesTable aliases;
 
 public:
+    sig_atomic_t stop_loop;
+    bool cameFromWatch;
     std::shared_ptr<Command> CreateCommand(const char *cmd_line, bool* isBackground);
     string getPrompt() const;
     JobsList& getJobsList();

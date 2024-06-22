@@ -21,9 +21,9 @@
 using namespace std;
 
 //these are for handling ctrl_c and watch command
-sig_atomic_t stop_loop = 0;
+//sig_atomic_t stop_loop = 0;
 
-bool cameFromWatch = false;
+//bool cameFromWatch = false;
 
 const std::string WHITESPACE = " \n\r\t\f\v";
 
@@ -97,7 +97,7 @@ void _removeBackgroundSign(char *cmd_line) {
 
 // TODO: Add your implementation for classes in Commands.h 
 
-SmallShell::SmallShell() :  jobs(JobsList()), prompt("smash"), pid(0), runningPid(-1), pwd(""), lastPwd(""), aliases(AliasesTable()){
+SmallShell::SmallShell() :  jobs(JobsList()), prompt("smash"), pid(0), runningPid(-1), pwd(""), lastPwd(""), aliases(AliasesTable()), stop_loop(0), cameFromWatch(false){
     pid = getpid();
     if (pid == -1){
         perror("smash error: getpid failed");
@@ -848,7 +848,7 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
     int secs = 2;
     int isDefault = false;
     try{
-        secs = stoi(argv[1]);
+        secs = KillCommand::sigEditor(argv[1]); //checks that the interval is starting with a -, if not assumes default
     }
     catch(...){
         isDefault = true;
@@ -872,13 +872,23 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
     }
     bool backGround = _isBackgroundCommand(choppedCmd.c_str());
     if(backGround == false){ //weird behavior for ctrl-c in the middle of the command
-        while(!stop_loop){
-            cameFromWatch = true;
-            smash->executeCommand(choppedCmd.c_str());
-            if(cameFromWatch == false){
-                return;
+        while(!SmallShell::getInstance().stop_loop){
+            SmallShell::getInstance().cameFromWatch = true;
+            pid_t f_pid = fork();
+            if (f_pid == -1){
+                perror("smash error: fork failed");
             }
-            sleep(secs);
+            else if(f_pid == 0){ //child
+                setpgrp();
+                smash->executeCommand(choppedCmd.c_str());
+                exit(0);
+            }
+            else{
+                if(SmallShell::getInstance().cameFromWatch == false){
+                    return;
+                }
+                sleep(secs);
+            }
         }
     }
     else{
@@ -906,6 +916,18 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
             }
             
             while(1){ //should this stop for some reason?
+                pid_t f_pid2 = fork();
+                if (f_pid2 == -1){
+                    perror("smash error: fork failed");
+                }
+                else if(f_pid2 == 0){ //child
+                    setpgrp();
+                    smash->executeCommand(choppedCmd.c_str());
+                    exit(0);
+                }
+                else{
+                    sleep(secs);
+                }
                 smash->executeCommand(choppedCmd.c_str());
                 sleep(secs);
             }
@@ -921,7 +943,7 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
             smash->getJobsList().addJob(tempPtr, f_pid, false);
         }
     }
-    stop_loop = 0;
+    SmallShell::getInstance().stop_loop = 0;
 }
 
 

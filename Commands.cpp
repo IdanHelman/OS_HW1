@@ -621,6 +621,10 @@ void ForegroundCommand::execute(SmallShell *smash) {
             cerr << "smash error: fg: invalid arguments" << endl;
             return;
         }
+        if (jobId < 0){
+            cerr << "smash error: fg: invalid arguments" << endl;
+            return;
+        }
         jobPtr = smash->getJobsList().getJobById(jobId);
         if(jobPtr == nullptr){
             cerr << "smash error: fg: job-id " << jobId << " does not exist" << endl;
@@ -879,7 +883,9 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
                 perror("smash error: fork failed");
             }
             else if(f_pid == 0){ //child
-                setpgrp();
+                if(setpgrp() == -1){
+                    perror("smash error: setpgrp failed");
+                }
                 smash->executeCommand(choppedCmd.c_str());
                 exit(0);
             }
@@ -898,6 +904,9 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
              perror("smash error: fork failed");
         }
         else if(f_pid == 0){ //child
+            if(setpgrp() == -1){
+                perror("smash error: setpgrp failed");
+            }
             int dev_null = open("/dev/null", O_WRONLY);
             if(dev_null == -1){
                 perror("smash error: open failed");
@@ -921,7 +930,9 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
                     perror("smash error: fork failed");
                 }
                 else if(f_pid2 == 0){ //child
-                    setpgrp();
+                    if(setpgrp() == -1){
+                        perror("smash error: setpgrp failed");
+                    }
                     smash->executeCommand(choppedCmd.c_str());
                     exit(0);
                 }
@@ -1088,6 +1099,9 @@ void PipeCommand::execute(SmallShell *smash) {
     pid_t firstChildPid, secondChildPid;
 
     if ((firstChildPid = fork()) == 0){
+        if(setpgrp() == -1){
+            perror("smash error: setpgrp failed");
+        }
         dup2(pipefd[1], write_pipe);
         close(pipefd[1]);
         close(pipefd[0]);
@@ -1099,6 +1113,9 @@ void PipeCommand::execute(SmallShell *smash) {
         exit(1);
     }
     if ((secondChildPid = fork()) == 0){
+        if(setpgrp() == -1){
+            perror("smash error: setpgrp failed");
+        }
         dup2(pipefd[0], 0);
         close(pipefd[0]);
         close(pipefd[1]);

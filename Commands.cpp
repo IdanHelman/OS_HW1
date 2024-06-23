@@ -877,6 +877,7 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
     bool backGround = _isBackgroundCommand(choppedCmd.c_str());
     if(backGround == false){ //weird behavior for ctrl-c in the middle of the command
         while(!SmallShell::getInstance().stop_loop){
+            system("clear");
             SmallShell::getInstance().cameFromWatch = true;
             pid_t f_pid = fork();
             if (f_pid == -1){

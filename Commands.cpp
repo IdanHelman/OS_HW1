@@ -97,7 +97,7 @@ void _removeBackgroundSign(char *cmd_line) {
 
 // TODO: Add your implementation for classes in Commands.h 
 
-SmallShell::SmallShell() :  jobs(JobsList()), prompt("smash"), pid(0), runningPid(-1), pwd(""), lastPwd(""), aliases(AliasesTable()), stop_loop(0), cameFromWatch(false){
+SmallShell::SmallShell() :  jobs(JobsList()), prompt("smash"), pid(0), runningPid(-1), pwd(""), lastPwd(""), aliases(AliasesTable()), stop_loop(0), cameFromWatch(false), isInChild(false){
     pid = getpid();
     if (pid == -1){
         perror("smash error: getpid failed");
@@ -155,7 +155,7 @@ AliasesTable& SmallShell::getAliases() {
 }
 
 bool SmallShell::isRedirectionCommand(const string& cmd_line){
-    return cmd_line.find(" > ") != string::npos || cmd_line.find(" >> ") != string::npos;
+    return cmd_line.find(">") != string::npos || cmd_line.find(">>") != string::npos;
 }
 
 /**
@@ -224,7 +224,7 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line, bool* i
 
 void SmallShell::executeCommand(const char *cmd_line) {
     // TODO: Add your implementation here
-     jobs.removeFinishedJobs();
+    jobs.removeFinishedJobs();
      if(isEmptyLine(cmd_line)){
         return;
      }
@@ -728,7 +728,7 @@ void unaliasCommand::execute(SmallShell *smash) {
 //maybe change this
 RedirectionCommand::RedirectionType RedirectionCommand::getRedirectionType(){
     char sign = '\0';
-    for(int i = 0; i < argc; i++){
+    /*for(int i = 0; i < argc; i++){
         if(strcmp(argv[i], ">") == 0){
             if(sign != '\0'){
                 cerr << "smash error: redirection: multiple redirection signs" << endl; //maybe remove this
@@ -745,6 +745,12 @@ RedirectionCommand::RedirectionType RedirectionCommand::getRedirectionType(){
             sign = 'a'; //a is for >> sign
             //break;
         }
+    }*/
+    if(parsed_cmd.find(">>") != string::npos){
+        sign = 'a';
+    }
+    else if(parsed_cmd.find('>') != string::npos){
+        sign = '>';
     }
     if(sign == '>'){
         return RedirectionType::Overwrite;
@@ -762,6 +768,11 @@ string RedirectionCommand::getChoppedCommand(){
     return parsed_cmd.substr(0, pos);
 }
 
+string RedirectionCommand::getTextFile(){
+    size_t pos = parsed_cmd.find_last_of('>');
+    return parsed_cmd.substr(pos + 1, parsed_cmd.length() - pos);
+}
+
 void RedirectionCommand::execute(SmallShell *smash) {
     RedirectionType type = getRedirectionType();
     if(type == RedirectionType::Error){ //maybe?
@@ -770,11 +781,12 @@ void RedirectionCommand::execute(SmallShell *smash) {
         return;
     }
     int fd;
+    string textFile = getTextFile();
     if(type == RedirectionType::Overwrite){
-        fd = open(argv[argc - 1], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        fd = open(_trim(textFile).c_str() , O_WRONLY | O_CREAT | O_TRUNC, 0666);
     }
     else if(type == RedirectionType::Append){
-        fd = open(argv[argc - 1], O_WRONLY | O_CREAT | O_APPEND, 0666);
+        fd = open(_trim(textFile).c_str() , O_WRONLY | O_CREAT | O_APPEND, 0666);
     }
     if(fd == -1){
         perror("smash error: open failed");
@@ -786,6 +798,7 @@ void RedirectionCommand::execute(SmallShell *smash) {
         perror("smash error: fork failed");
     }
     else if (f_pid == 0){ //child
+        smash->isInChild = true;
         if(setpgrp() == -1){
             perror("smash error: setpgrp failed");
         }
@@ -801,7 +814,9 @@ void RedirectionCommand::execute(SmallShell *smash) {
 
         //executing the command
         string choppedCmd = getChoppedCommand();
-        smash->executeCommand(choppedCmd.c_str());
+        bool isBackground = false;
+        shared_ptr<Command> cmd = smash->CreateCommand(choppedCmd.c_str(), &isBackground);
+        cmd->execute(smash);
         exit(1);
     }
     else{ //parent

@@ -449,20 +449,20 @@ bool AliasesTable::validFormat(const string &cmd) {
 static bool isReservedWord(const string &word){
     return word == "chprompt" || word == "showpid" || word == "pwd" || word == "cd" || word == "quit"
            || word == "jobs" || word == "fg" || word == "kill" || word == "listdir" || word == "getuser" || word == "watch"
-           || word == "alias" || word == "unalias";
+           || word == "alias" || word == "unalias" || word == ">" || word == ">>" || word == "|" || word == "|&";
 }
 
 void AliasesTable::addAlias(const string &cmd){
     string cmd_no_space = cmd.substr(cmd.find_first_not_of(WHITESPACE));
-    if (!validFormat(cmd_no_space)){
-        cerr << "smash error: alias: invalid alias format" << endl;
-        return;
-    }
+    bool valid = validFormat(cmd_no_space);
     string key = cmd_no_space.substr(0, cmd_no_space.find_first_of('='));
     string value = cmd_no_space.substr(cmd_no_space.find_first_of('\'') + 1, cmd_no_space.find_last_of('\'') - cmd_no_space.find_first_of('\'') - 1);
-    // TODO: check if key is a reserved word or built in command in shell
-    if(aliases.find(key) != aliases.end() || isReservedWord(key)){
+    bool reserved_or_exist = aliases.find(key) != aliases.end() || isReservedWord(key);
+    if(reserved_or_exist){
         cerr << "smash error: alias: " << key << " already exists or is a reserved command" << endl;
+    }
+    else if(!valid){
+        cerr << "smash error: alias: invalid alias format" << endl;
     }
     else {
         aliases[key] = value;
@@ -1223,4 +1223,3 @@ void ListDirCommand::execute(SmallShell *smash) {
     }
     close(dir_fd);
 }
-

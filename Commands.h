@@ -89,6 +89,8 @@ public:
 
     string getChoppedCommand();
 
+    string getTextFile();
+
 };
 
 class ChangeDirCommand : public BuiltInCommand {
@@ -330,6 +332,7 @@ private:
 public:
     sig_atomic_t stop_loop;
     bool cameFromWatch;
+    bool isInChild;
     std::shared_ptr<Command> CreateCommand(const char *cmd_line, bool* isBackground);
     string getPrompt() const;
     JobsList& getJobsList();

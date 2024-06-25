@@ -190,7 +190,7 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line, bool* i
     //check for redirection or pipe
     else if(isRedirectionCommand(cmd_no_sign)){
         return std::make_shared<RedirectionCommand>(cmd_s, cmd_no_sign);
-    } else if(cmd_no_sign.find(" | ") != string::npos || cmd_no_sign.find(" |& ") != string::npos){
+    } else if(cmd_no_sign.find("|") != string::npos || cmd_no_sign.find("|&") != string::npos){
         return std::make_shared<PipeCommand>(cmd_s, cmd_no_sign);
     }
 
@@ -1100,10 +1100,10 @@ void GetUserCommand::execute(SmallShell *smash) {
 }
 
 void PipeCommand::execute(SmallShell *smash) {
-    bool error = parsed_cmd.find(" |& ") != string::npos;
+    bool error = parsed_cmd.find("|&") != string::npos;
     bool isBackground = false;
-    shared_ptr<Command> firstCmd = smash->CreateCommand(parsed_cmd.substr(0, parsed_cmd.find(" |")).c_str(), &isBackground);
-    shared_ptr<Command> secondCmd = smash->CreateCommand(parsed_cmd.substr(parsed_cmd.find(" |") + 3).c_str(), &isBackground);
+    shared_ptr<Command> firstCmd = smash->CreateCommand(parsed_cmd.substr(0, parsed_cmd.find("|")).c_str(), &isBackground);
+    shared_ptr<Command> secondCmd = smash->CreateCommand(parsed_cmd.substr(parsed_cmd.find("|") + 1 + error).c_str(), &isBackground);
 
     int pipefd[2];
     if(pipe(pipefd) == -1){

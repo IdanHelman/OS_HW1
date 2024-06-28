@@ -453,7 +453,10 @@ static bool isReservedWord(const string &word){
 }
 
 void AliasesTable::addAlias(const string &cmd){
-    string cmd_no_space = cmd.substr(cmd.find_first_not_of(WHITESPACE));
+    string cmd_no_space = cmd.substr(cmd.find_first_not_of(WHITESPACE), cmd.find_last_not_of(WHITESPACE) + 1);
+    if(cmd_no_space.back() == '&'){
+        cmd_no_space.pop_back();
+    }
     bool valid = validFormat(cmd_no_space);
     string key = cmd_no_space.substr(0, cmd_no_space.find_first_of('='));
     string value = cmd_no_space.substr(cmd_no_space.find_first_of('\'') + 1, cmd_no_space.find_last_of('\'') - cmd_no_space.find_first_of('\'') - 1);
@@ -704,7 +707,7 @@ void aliasCommand::execute(SmallShell *smash) {
         aliases.printAliases();
     }
     else{
-        string firstWord = argv[0];
+        string firstWord = cmd.substr(0, cmd.find_first_of(" \n&"));
         aliases.addAlias(cmd.substr(firstWord.length() + 1));
     }
 }

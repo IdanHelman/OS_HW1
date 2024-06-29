@@ -820,7 +820,7 @@ void RedirectionCommand::execute(SmallShell *smash) {
         bool isBackground = false;
         shared_ptr<Command> cmd = smash->CreateCommand(choppedCmd.c_str(), &isBackground);
         cmd->execute(smash);
-        exit(1);
+        exit(0);
     }
     else{ //parent
         waitpid(f_pid, nullptr, 0); //waiting for child to finish
@@ -897,7 +897,9 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
         while(!SmallShell::getInstance().stop_loop){
             system("clear");
             SmallShell::getInstance().cameFromWatch = true;
-            pid_t f_pid = fork();
+            smash->executeCommand(choppedCmd.c_str());
+            sleep(secs);
+            /*pid_t f_pid = fork();
             if (f_pid == -1){
                 perror("smash error: fork failed");
             }
@@ -913,7 +915,7 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
                     return;
                 }
                 sleep(secs);
-            }
+            }*/
         }
     }
     else{
@@ -931,20 +933,26 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
                 perror("smash error: open failed");
                 exit(EXIT_FAILURE);
             }
-            int stdout_copy = dup(STDOUT_FILENO);
+            /*int stdout_copy = dup(STDOUT_FILENO);
             if(stdout_copy == -1){
                 perror("smash error: dup failed");
                 exit(EXIT_FAILURE);
-            }
+            }*/
 
             if(dup2(dev_null, STDOUT_FILENO) == -1){
                 perror("smash error: dup2 failed");
                 close(dev_null);
                 exit(EXIT_FAILURE);
             }
-            
+
+            if(dup2(dev_null, STDERR_FILENO) == -1){
+                perror("smash error: dup2 failed");
+                close(dev_null);
+                exit(EXIT_FAILURE);
+            }
+
             while(1){ //should this stop for some reason?
-                pid_t f_pid2 = fork();
+                /*pid_t f_pid2 = fork();
                 if (f_pid2 == -1){
                     perror("smash error: fork failed");
                 }
@@ -957,17 +965,17 @@ void WatchCommand::executeWatch(SmallShell *smash, shared_ptr<Command> tempPtr){
                 }
                 else{
                     sleep(secs);
-                }
+                }*/
                 smash->executeCommand(choppedCmd.c_str());
                 sleep(secs);
             }
             //not getting here
-            if (dup2(stdout_copy, STDOUT_FILENO) == -1) {
+            /*if (dup2(stdout_copy, STDOUT_FILENO) == -1) {
                 perror("smash error: dup2 failed");
                 exit(EXIT_FAILURE);
-            }
+            }*/
             close(dev_null);
-            close(stdout_copy);
+            //close(stdout_copy);
         }
         else{ //parent - adding the watch command to jobs list
             smash->getJobsList().addJob(tempPtr, f_pid, false);

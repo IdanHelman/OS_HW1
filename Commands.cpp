@@ -575,7 +575,10 @@ void KillCommand::execute(SmallShell *smash){
         cerr << "smash error: kill: invalid arguments" << endl;
         return;
     }
-
+    if(jobId < 0){
+        cerr << "smash error: kill: invalid arguments" << endl;
+        return;
+    }
     JobsList::JobEntry* jobPtr = smash->getJobsList().getJobById(jobId).get();
     //can you kill a job that is finished?
     if(jobPtr == nullptr || jobPtr->status == JobsList::JobStatus::Killed || jobPtr->status == JobsList::JobStatus::Finished){

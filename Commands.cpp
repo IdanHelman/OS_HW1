@@ -190,7 +190,7 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line, bool* i
     //check for redirection or pipe
     else if(isRedirectionCommand(cmd_no_sign)){
         return std::make_shared<RedirectionCommand>(cmd_s, cmd_no_sign);
-    } else if(cmd_no_sign.find(" | ") != string::npos || cmd_no_sign.find(" |& ") != string::npos){
+    } else if(cmd_no_sign.find("|") != string::npos || cmd_no_sign.find("|&") != string::npos){
         return std::make_shared<PipeCommand>(cmd_s, cmd_no_sign);
     }
 
@@ -453,7 +453,10 @@ static bool isReservedWord(const string &word){
 }
 
 void AliasesTable::addAlias(const string &cmd){
-    string cmd_no_space = cmd.substr(cmd.find_first_not_of(WHITESPACE));
+    string cmd_no_space = cmd.substr(cmd.find_first_not_of(WHITESPACE), cmd.find_last_not_of(WHITESPACE) + 1);
+    if(cmd_no_space.back() == '&'){
+        cmd_no_space.pop_back();
+    }
     bool valid = validFormat(cmd_no_space);
     string key = cmd_no_space.substr(0, cmd_no_space.find_first_of('='));
     string value = cmd_no_space.substr(cmd_no_space.find_first_of('\'') + 1, cmd_no_space.find_last_of('\'') - cmd_no_space.find_first_of('\'') - 1);
@@ -704,7 +707,7 @@ void aliasCommand::execute(SmallShell *smash) {
         aliases.printAliases();
     }
     else{
-        string firstWord = argv[0];
+        string firstWord = cmd.substr(0, cmd.find_first_of(" \n&"));
         aliases.addAlias(cmd.substr(firstWord.length() + 1));
     }
 }
@@ -1100,10 +1103,10 @@ void GetUserCommand::execute(SmallShell *smash) {
 }
 
 void PipeCommand::execute(SmallShell *smash) {
-    bool error = parsed_cmd.find(" |& ") != string::npos;
+    bool error = parsed_cmd.find("|&") != string::npos;
     bool isBackground = false;
-    shared_ptr<Command> firstCmd = smash->CreateCommand(parsed_cmd.substr(0, parsed_cmd.find(" |")).c_str(), &isBackground);
-    shared_ptr<Command> secondCmd = smash->CreateCommand(parsed_cmd.substr(parsed_cmd.find(" |") + 3).c_str(), &isBackground);
+    shared_ptr<Command> firstCmd = smash->CreateCommand(parsed_cmd.substr(0, parsed_cmd.find("|")).c_str(), &isBackground);
+    shared_ptr<Command> secondCmd = smash->CreateCommand(parsed_cmd.substr(parsed_cmd.find("|") + 1 + error).c_str(), &isBackground);
 
     int pipefd[2];
     if(pipe(pipefd) == -1){

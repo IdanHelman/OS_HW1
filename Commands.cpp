@@ -441,7 +441,7 @@ bool AliasesTable::validFormat(const string &cmd) {
         return false;
     }
     string key = cmd.substr(0, cmd.find_first_of('='));
-    if (!all_of(key.begin(), key.end(), [](char c) { return isalnum(c) || c == '_'; })) {
+    if (key.empty() || !all_of(key.begin(), key.end(), [](char c) { return isalnum(c) || c == '_'; })) {
         return false;
     }
     if (cmd.find_first_of('=') + 1 != cmd.find_first_of('\'') ||

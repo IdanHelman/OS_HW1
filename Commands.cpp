@@ -158,6 +158,11 @@ bool SmallShell::isRedirectionCommand(const string& cmd_line){
     return cmd_line.find(">") != string::npos || cmd_line.find(">>") != string::npos;
 }
 
+bool io_on_alias(const string& cmd_line){
+    return cmd_line.find_first_of(">") < cmd_line.find_first_of("=") || cmd_line.find(">>") < cmd_line.find("=") ||
+             cmd_line.find_first_of("|") < cmd_line.find_first_of("=") || cmd_line.find("|&") < cmd_line.find("=");
+}
+
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
@@ -176,7 +181,7 @@ std::shared_ptr<Command> SmallShell::CreateCommand(const char *cmd_line, bool* i
     string firstWord = cmd_no_sign.substr(0, cmd_no_sign.find_first_of(" \n&"));
 
     //first check for alias
-    if (firstWord.compare("alias") == 0) {
+    if (firstWord.compare("alias") == 0 && !io_on_alias(cmd_no_sign)) {
         return std::make_shared<aliasCommand>(cmd_s, cmd_no_sign);
     } else if (firstWord.compare("unalias") == 0) {
         return std::make_shared<unaliasCommand>(cmd_s, cmd_no_sign);
@@ -594,12 +599,13 @@ void KillCommand::execute(SmallShell *smash){
     }
 
     int ret = kill(jobPtr->pid, sig);
+    cout << "signal number " << sig << " was sent to pid " << jobPtr->pid << endl;
     if(ret == -1){
         perror("smash error: kill failed");
         return;
     }
 
-    cout << "signal number " << sig << " was sent to pid " << jobPtr->pid << endl;
+
 
     if(sig == SIGKILL){
         jobPtr->status = JobsList::JobStatus::Killed;

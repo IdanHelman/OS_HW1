@@ -563,7 +563,7 @@ int KillCommand::sigEditor(char* sig){
 }
 
 void KillCommand::execute(SmallShell *smash){
-    if(argc < 3){
+    if(argc != 3){ //maybe
         cerr << "smash error: kill: invalid arguments" << endl;
         return;
     }
@@ -579,17 +579,17 @@ void KillCommand::execute(SmallShell *smash){
         cerr << "smash error: kill: invalid arguments" << endl;
         return;
     }
-    JobsList::JobEntry* jobPtr = smash->getJobsList().getJobById(jobId).get();
-    //can you kill a job that is finished?
-    if(jobPtr == nullptr || jobPtr->status == JobsList::JobStatus::Killed || jobPtr->status == JobsList::JobStatus::Finished){
-        cerr << "smash error: kill: job-id " << jobId << " does not exist" << endl;
-        return;
-    }
     try{
         sig = sigEditor(argv[1]);
     }
     catch(...){
         cerr << "smash error: kill: invalid arguments" << endl;
+        return;
+    }
+    JobsList::JobEntry* jobPtr = smash->getJobsList().getJobById(jobId).get();
+    //can you kill a job that is finished?
+    if(jobPtr == nullptr || jobPtr->status == JobsList::JobStatus::Killed || jobPtr->status == JobsList::JobStatus::Finished){
+        cerr << "smash error: kill: job-id " << jobId << " does not exist" << endl;
         return;
     }
 //    if(!((1 <= sig) && (sig <= 31))){
@@ -624,7 +624,7 @@ void KillCommand::execute(SmallShell *smash){
 
 void ForegroundCommand::execute(SmallShell *smash) {
     shared_ptr<JobsList::JobEntry> jobPtr = nullptr;
-    if(argc >= 2){
+    if(argc == 2){
         int jobId;
         try{
             jobId = stoi(argv[1]);
